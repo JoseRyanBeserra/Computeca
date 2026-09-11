@@ -151,4 +151,59 @@ describe('MaterialDetailPage', () => {
       expect(screen.queryByText(/Recursos de IA indisponíveis/i)).not.toBeInTheDocument()
     })
   })
+
+  describe('pré-visualização do documento', () => {
+    const URL_DO_ARQUIVO = 'https://armazenamento/materiais/geo.pdf'
+
+    function objetoDoDocumento() {
+      return document.querySelector('object[type="application/pdf"]')
+    }
+
+    function respostaPadrao(urlOk = true) {
+      mockApi.get.mockImplementation((url: string) => {
+        if (url === '/mis/m1') return Promise.resolve({ data: material() })
+        if (url.includes('presigned-url')) {
+          return urlOk
+            ? Promise.resolve({ data: { url: URL_DO_ARQUIVO, expiresInSeconds: 3600 } })
+            : Promise.reject({ response: { status: 500 } })
+        }
+        return Promise.resolve({ data: {} })
+      })
+    }
+
+    it('exibe o documento sem remover o botão de tela cheia', async () => {
+      respostaPadrao()
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      await waitFor(() => expect(objetoDoDocumento()).not.toBeNull())
+      expect(objetoDoDocumento()).toHaveAttribute('data', URL_DO_ARQUIVO)
+      expect(screen.getByRole('button', { name: /Abrir PDF/i })).toBeInTheDocument()
+    })
+
+    it('renderiza os metadados sem esperar a URL do documento', async () => {
+      mockApi.get.mockImplementation((url: string) => {
+        if (url === '/mis/m1') return Promise.resolve({ data: material() })
+        // A URL nunca chega: os metadados não podem depender dela.
+        if (url.includes('presigned-url')) return new Promise(() => {})
+        return Promise.resolve({ data: {} })
+      })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      expect(await screen.findByText('Guia de Geometria')).toBeInTheDocument()
+      expect(screen.getByText(/Carregando documento/i)).toBeInTheDocument()
+    })
+
+    it('falha na pré-visualização não derruba o resto da tela', async () => {
+      respostaPadrao(false)
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      expect(await screen.findByText('Guia de Geometria')).toBeInTheDocument()
+      expect(await screen.findByText(/Não foi possível carregar o documento/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Abrir PDF/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
+    })
+  })
 })

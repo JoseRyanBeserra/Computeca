@@ -10,6 +10,7 @@ import { HabilidadesBncc } from '../components/HabilidadesBncc'
 import { useAuth } from '../context/AuthContext'
 import { canUseAiChat } from '../lib/permissions'
 import { useFeatures } from '../features/config/hooks/useFeatures'
+import { PdfPreview } from '../components/PdfPreview'
 import { useMaterial } from '../features/materials/hooks/useMaterial'
 import { useMaterialSummary } from '../features/materials/hooks/useMaterialSummary'
 import {
@@ -260,6 +261,13 @@ function DetailContent({ material }: { material: PendingMaterial }) {
       </div>
 
       {/* Recursos de IA — resumo quando pronto, ou aviso de processamento/falha */}
+      <PdfPreview
+        materialId={material.id}
+        materialStatus={material.status}
+        onOpenFullscreen={handleOpenPdf}
+        title={material.title}
+      />
+
       <AiSection material={material} />
 
       {/* Erro ao abrir */}
