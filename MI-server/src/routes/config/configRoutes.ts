@@ -1,6 +1,8 @@
 // src/routes/config/configRoutes.ts
 import type { FastifyInstance } from 'fastify'
 import { getFeatureAvailabilityController } from '../../controllers/config/getFeatureAvailabilityController'
+import { updateAiAvailabilityController } from '../../controllers/config/updateAiAvailabilityController'
+import { authenticate } from '../../middlewares/authenticate'
 
 export async function configRoutes(app: FastifyInstance): Promise<void> {
   /**
@@ -11,4 +13,11 @@ export async function configRoutes(app: FastifyInstance): Promise<void> {
    * vestígio de funcionalidade desativada.
    */
   app.get('/features', getFeatureAvailabilityController)
+
+  /** PATCH /config/features/ai — altera a disponibilidade da IA (ADMIN) */
+  app.patch(
+    '/features/ai',
+    { preHandler: [authenticate] },
+    updateAiAvailabilityController,
+  )
 }

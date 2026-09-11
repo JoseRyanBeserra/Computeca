@@ -153,23 +153,23 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 4
 
-- [ ] T055 [P] [US4] Teste de integração de `PATCH /config/features/ai` em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts`, cobrindo desligar, religar, `403` para `PROFESSOR`, `401` sem token e `422` para `{"enabled": "false"}`, conforme `contracts/patch-admin-features-ai.md`
-- [ ] T056 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, o `PATCH` responde `409` com `code: AI_NOT_MANAGEABLE` e **nada é gravado** no banco
-- [ ] T057 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando o efeito sem reinício: após desligar pelo painel, `POST /mis/:id/chat` passa a responder `503` na mesma execução da aplicação (SC-008)
-- [ ] T058 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que a mudança de valor grava `AuditLog` com `action: AI_AVAILABILITY_CHANGED` e `metadata: { de, para }`, e que **repetir o mesmo valor não gera registro**
-- [ ] T059 [P] [US4] Teste de `front/src/pages/AdminDashboardPage.test.tsx` confirmando que o controle aparece **bloqueado e explicado** quando `manageable` é `false`, e operante quando é `true`
-- [ ] T060 [P] [US4] Teste do comando de reprocessamento em `MI-server/__tests__/unit/scripts/aiBackfill.test.ts`, cobrindo a recusa com IA desativada, a contagem informada antes de iniciar e a seleção de `PENDING` e `FAILED` com exclusão de `PROCESSING`
+- [X] T055 [P] [US4] Teste de integração de `PATCH /config/features/ai` em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts`, cobrindo desligar, religar, `403` para `PROFESSOR`, `401` sem token e `422` para `{"enabled": "false"}`, conforme `contracts/patch-admin-features-ai.md`
+- [X] T056 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, o `PATCH` responde `409` com `code: AI_NOT_MANAGEABLE` e **nada é gravado** no banco
+- [X] T057 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando o efeito sem reinício: após desligar pelo painel, `POST /mis/:id/chat` passa a responder `503` na mesma execução da aplicação (SC-008)
+- [X] T058 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que a mudança de valor grava `AuditLog` com `action: AI_AVAILABILITY_CHANGED` e `metadata: { de, para }`, e que **repetir o mesmo valor não gera registro**
+- [X] T059 [P] [US4] Teste de `front/src/pages/AdminDashboardPage.test.tsx` confirmando que o controle aparece **bloqueado e explicado** quando `manageable` é `false`, e operante quando é `true`
+- [X] T060 [P] [US4] Teste do comando de reprocessamento em `MI-server/__tests__/unit/scripts/aiBackfill.test.ts`, cobrindo a recusa com IA desativada, a contagem informada antes de iniciar e a seleção de `PENDING` e `FAILED` com exclusão de `PROCESSING`
 
 ### Implementation for User Story 4
 
-- [ ] T061 [P] [US4] Criar `MI-server/src/schemas/config/updateAiAvailabilitySchema.ts` exportando `UpdateAiAvailabilityBodySchema` com `enabled: z.boolean()` estrito, o tipo `UpdateAiAvailabilityRequest`, o schema de service `updateAiAvailabilitySchema` com `updatedById` e o tipo `UpdateAiAvailabilityServiceInput`
-- [ ] T062 [US4] Criar `MI-server/src/services/config/updateAiAvailabilityService.ts` — valida com `validateRequest`, recusa com `409 AI_NOT_MANAGEABLE` quando `isAiManageable()` for falso, grava via `upsertAppSetting` no formato `{ "enabled": boolean }`, invalida o cache e grava `AuditLog` **apenas quando o valor muda** (depende de T010, T012, T061)
-- [ ] T063 [US4] Criar `MI-server/src/controllers/config/updateAiAvailabilityController.ts` com `authorizeByRole(request.user.role, [ADMIN])` e `InspectionLog` nos dois sentidos, sucesso e erro (depende de T062)
-- [ ] T064 [US4] Registrar `PATCH /features/ai` com `preHandler: [authenticate]` em `MI-server/src/routes/config/configRoutes.ts`, com JSDoc `/** PATCH /config/features/ai — altera a disponibilidade da IA (ADMIN) */` (depende de T063)
-- [ ] T065 [P] [US4] Acrescentar `updateAiAvailabilityRequest()` a `front/src/features/config/api/configApi.ts` (depende de T030)
-- [ ] T066 [US4] Acrescentar a `front/src/pages/AdminDashboardPage.tsx` a seção de disponibilidade da IA, com o controle desabilitado e texto explicativo quando `manageable` for `false`, e invalidação da consulta de features após a alteração (depende de T032, T065)
-- [ ] T067 [P] [US4] Criar `MI-server/scripts/aiBackfill.ts` que recusa execução com a IA desativada, seleciona materiais `APPROVED` com `vectorStatus` em `PENDING` ou `FAILED` — **excluindo `PROCESSING`**, que pode ter job vivo —, informa o total antes de iniciar e enfileira via `getVectorizeQueue()` (depende de T011, T013)
-- [ ] T068 [US4] Registrar o script `"ai:backfill": "tsx scripts/aiBackfill.ts"` em `MI-server/package.json` (depende de T067)
+- [X] T061 [P] [US4] Criar `MI-server/src/schemas/config/updateAiAvailabilitySchema.ts` exportando `UpdateAiAvailabilityBodySchema` com `enabled: z.boolean()` estrito, o tipo `UpdateAiAvailabilityRequest`, o schema de service `updateAiAvailabilitySchema` com `updatedById` e o tipo `UpdateAiAvailabilityServiceInput`
+- [X] T062 [US4] Criar `MI-server/src/services/config/updateAiAvailabilityService.ts` — valida com `validateRequest`, recusa com `409 AI_NOT_MANAGEABLE` quando `isAiManageable()` for falso, grava via `upsertAppSetting` no formato `{ "enabled": boolean }`, invalida o cache e grava `AuditLog` **apenas quando o valor muda** (depende de T010, T012, T061)
+- [X] T063 [US4] Criar `MI-server/src/controllers/config/updateAiAvailabilityController.ts` com `authorizeByRole(request.user.role, [ADMIN])` e `InspectionLog` nos dois sentidos, sucesso e erro (depende de T062)
+- [X] T064 [US4] Registrar `PATCH /features/ai` com `preHandler: [authenticate]` em `MI-server/src/routes/config/configRoutes.ts`, com JSDoc `/** PATCH /config/features/ai — altera a disponibilidade da IA (ADMIN) */` (depende de T063)
+- [X] T065 [P] [US4] Acrescentar `updateAiAvailabilityRequest()` a `front/src/features/config/api/configApi.ts` (depende de T030)
+- [X] T066 [US4] Acrescentar a `front/src/pages/AdminDashboardPage.tsx` a seção de disponibilidade da IA, com o controle desabilitado e texto explicativo quando `manageable` for `false`, e invalidação da consulta de features após a alteração (depende de T032, T065)
+- [X] T067 [P] [US4] Criar `MI-server/scripts/aiBackfill.ts` que recusa execução com a IA desativada, seleciona materiais `APPROVED` com `vectorStatus` em `PENDING` ou `FAILED` — **excluindo `PROCESSING`**, que pode ter job vivo —, informa o total antes de iniciar e enfileira via `getVectorizeQueue()` (depende de T011, T013)
+- [X] T068 [US4] Registrar o script `"ai:backfill": "tsx scripts/aiBackfill.ts"` em `MI-server/package.json` (depende de T067)
 
 **Checkpoint**: decisão reversível de ponta a ponta, sem nenhum arquivo restaurado.
 

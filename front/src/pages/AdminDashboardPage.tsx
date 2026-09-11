@@ -1,9 +1,10 @@
 // src/pages/AdminDashboardPage.tsx
 // Painel administrativo: visão geral de usuários, materiais e projetos.
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import {
   LayoutDashboard, Users, CheckCircle2, Clock, Building2,
-  ArrowRight, Loader2, AlertCircle, type LucideIcon,
+  ArrowRight, Loader2, AlertCircle, Sparkles, Lock, type LucideIcon,
 } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { useUsers } from '../features/users/hooks/useUsers'
@@ -12,6 +13,8 @@ import { useAllOrganizations } from '../features/organizations/hooks/useAllOrgan
 import type { Role } from '../types/auth'
 import type { AdminUser } from '../features/users/api/usersApi'
 import type { AdminOrganizationDTO } from '../features/organizations/api/organizationsApi'
+import { useFeatures } from '../features/config/hooks/useFeatures'
+import { updateAiAvailabilityRequest } from '../features/config/api/configApi'
 
 // ── Constantes ──────────────────────────────────────────────────────────────────
 
@@ -167,6 +170,99 @@ function ProjectMiniCard({ org }: { org: AdminOrganizationDTO }) {
 
 // ── AdminDashboardPage ────────────────────────────────────────────────────────────
 
+
+// ── Disponibilidade das funcionalidades de IA ───────────────────────────────────
+
+/**
+ * Controle operacional da IA, subordinado ao interruptor de ambiente.
+ *
+ * Quando a instalação não tem suporte a IA habilitado (`manageable: false`), o
+ * controle aparece bloqueado e explicado: religar depende de configuração de
+ * ambiente e dos serviços de apoio, que o painel não alcança.
+ */
+function AiAvailabilityPanel() {
+  const { ai, refresh } = useFeatures()
+  const [saving, setSaving] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+
+  async function alternar() {
+    setSaving(true)
+    setErro(null)
+    try {
+      await updateAiAvailabilityRequest(!ai.enabled)
+      await refresh()
+    } catch {
+      setErro('Não foi possível alterar a disponibilidade. Tente novamente.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+        <Sparkles size={15} className="text-indigo-500 dark:text-indigo-400" />
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          Funcionalidades de IA
+        </h2>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {!ai.manageable ? (
+          <div className="flex items-start gap-2.5 rounded-xl border border-gray-200 dark:border-gray-700
+                          bg-gray-50 dark:bg-gray-800/50 p-3.5 text-gray-600 dark:text-gray-400">
+            <Lock size={16} className="shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                Indisponível nesta instalação
+              </p>
+              <p className="text-xs leading-relaxed">
+                Esta instalação não possui suporte a IA habilitado. Chat, resumo automático e
+                vetorização estão desligados no ambiente, e os serviços de apoio não estão em
+                execução. Religar depende de configuração de ambiente, não deste painel.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {ai.enabled ? 'Ativas' : 'Desativadas'}
+                </p>
+                <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                  {ai.enabled
+                    ? 'Resumo por IA e conversa com o documento estão disponíveis aos usuários.'
+                    : 'Resumo por IA e conversa com o documento estão ocultos e as operações recusam.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={alternar}
+                disabled={saving}
+                className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors
+                            focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900
+                            disabled:opacity-60 disabled:cursor-not-allowed ${
+                              ai.enabled
+                                ? 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-gray-400'
+                                : 'border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900 focus:ring-indigo-500'
+                            }`}
+              >
+                {saving ? 'Salvando…' : ai.enabled ? 'Desativar IA' : 'Ativar IA'}
+              </button>
+            </div>
+
+            {erro && (
+              <p className="text-xs text-red-600 dark:text-red-400">{erro}</p>
+            )}
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
 export function AdminDashboardPage() {
   const navigate = useNavigate()
 
@@ -187,6 +283,8 @@ export function AdminDashboardPage() {
           <LayoutDashboard size={22} className="text-indigo-600 dark:text-indigo-400" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Painel administrativo</h1>
         </div>
+
+        <AiAvailabilityPanel />
 
         {/* Indicadores */}
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

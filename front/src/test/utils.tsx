@@ -47,6 +47,7 @@ interface RenderOptions {
 const DEFAULT_TEST_FEATURES: FeaturesContextValue = {
   ai:      { enabled: true, manageable: true },
   loading: false,
+  refresh: async () => {},
 }
 
 export function renderWithProviders(

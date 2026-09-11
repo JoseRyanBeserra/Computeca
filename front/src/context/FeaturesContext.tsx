@@ -5,7 +5,7 @@
 // permanece puro: ele responde sobre o PERFIL do usuário, enquanto isto responde
 // sobre a EXISTÊNCIA da funcionalidade. Misturar os dois tornaria impossível
 // distinguir "não pode" de "não existe".
-import { createContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useEffect, useState, type ReactNode } from 'react'
 import {
   getFeatureAvailabilityRequest,
   type FeatureAvailability,
@@ -23,16 +23,28 @@ const DEFAULT_AVAILABILITY: FeatureAvailability = {
 export interface FeaturesContextValue extends FeatureAvailability {
   /** A consulta inicial ainda está em andamento. */
   loading: boolean
+  /** Reconsulta a disponibilidade — usado após o painel alterar o estado. */
+  refresh: () => Promise<void>
 }
 
 export const FeaturesContext = createContext<FeaturesContextValue>({
   ...DEFAULT_AVAILABILITY,
   loading: true,
+  refresh: async () => {},
 })
 
 export function FeaturesProvider({ children }: { children: ReactNode }) {
   const [features, setFeatures] = useState<FeatureAvailability>(DEFAULT_AVAILABILITY)
   const [loading, setLoading] = useState(true)
+
+  const refresh = useCallback(async () => {
+    try {
+      setFeatures(await getFeatureAvailabilityRequest())
+    } catch {
+      // Falha de rede mantém o padrão seguro (tudo desativado).
+      setFeatures(DEFAULT_AVAILABILITY)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -42,7 +54,6 @@ export function FeaturesProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setFeatures(data)
       })
       .catch(() => {
-        // Falha de rede mantém o padrão seguro (tudo desativado).
         if (!cancelled) setFeatures(DEFAULT_AVAILABILITY)
       })
       .finally(() => {
@@ -55,7 +66,7 @@ export function FeaturesProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <FeaturesContext.Provider value={{ ...features, loading }}>
+    <FeaturesContext.Provider value={{ ...features, loading, refresh }}>
       {children}
     </FeaturesContext.Provider>
   )

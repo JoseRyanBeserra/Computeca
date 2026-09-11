@@ -23,3 +23,15 @@ export async function getFeatureAvailabilityRequest(): Promise<FeatureAvailabili
   const { data } = await api.get<FeatureAvailability>('/config/features')
   return data
 }
+
+/**
+ * Liga ou desliga a disponibilidade das funcionalidades de IA (ADMIN).
+ *
+ * Só funciona quando a instalação tem suporte a IA habilitado no ambiente
+ * (`manageable: true`). Caso contrário a API responde 409 AI_NOT_MANAGEABLE e
+ * nada é gravado.
+ */
+export async function updateAiAvailabilityRequest(enabled: boolean): Promise<FeatureAvailability> {
+  const { data } = await api.patch<FeatureAvailability>('/config/features/ai', { enabled })
+  return data
+}
