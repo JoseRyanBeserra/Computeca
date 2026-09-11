@@ -120,4 +120,15 @@ describe('checkAiServicesReadiness — IA ativada', () => {
       qdrant:  false,
     })
   })
+
+  it('fila nula com a IA ligada: reporta indisponibilidade sem lançar (caminho defensivo)', async () => {
+    envMock.AI_FEATURES_ENABLED = true
+    queueMock.mockReturnValue(null)
+    qdrantMock.mockResolvedValue(undefined as never)
+
+    const report = await checkAiServicesReadiness()
+
+    expect(report.redis).toBe(false)
+    expect(logger.warn).toHaveBeenCalled()
+  })
 })

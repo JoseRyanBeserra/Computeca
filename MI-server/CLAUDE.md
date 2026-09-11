@@ -184,3 +184,37 @@ app.post(
 ## Testes automatizados
 
 - TODAS as features feitas devem ter seus testes jest implementados, cobrindo 100% (ou proximo) do coverage da function relacionada
+
+---
+
+## Funcionalidades de IA — interruptor de dois níveis
+
+Chat com PDF, resumo automático e vetorização são **desativáveis globalmente**.
+O padrão do projeto é desligado.
+
+```
+disponibilidadeEfetiva = AI_FEATURES_ENABLED && (AppSetting["ai.enabled"] ?? true)
+```
+
+| Nível | Onde | Como ler no código | Exige reinício? |
+| --- | --- | --- | --- |
+| Ambiente (mestre) | `AI_FEATURES_ENABLED` em `src/env.ts` | `isAiManageable()` | Sim |
+| Administração | `AppSetting["ai.enabled"]` | — | Não |
+| **Efetiva** | conjunção dos dois | `await isAiEnabled()` | — |
+
+Ambos em `src/constants/features.ts`. O resolvedor usa cache de processo:
+**invalide com `invalidateAiAvailabilityCache()` após qualquer escrita.**
+
+### Regras ao mexer em código de IA
+
+- **Nunca abra conexão no corpo do módulo.** `lib/queue.ts` e `lib/openai.ts`
+  expõem `getVectorizeQueue()` e `getOpenAiClient()`, criados sob demanda.
+  `getVectorizeQueue()` retorna `null` com a IA desativada — trate o `null`.
+- **Rota nova de IA** leva `requireAiEnabled` como `preHandler`, sempre **depois**
+  de `authenticate`: sem token o retorno é `401`, não `503`.
+- **Campo de IA em resposta** passa por `omitAiFields` / `omitAiFieldsFromList`
+  na camada de **service**. Repositório não decide isso — ele só consulta.
+- **Serviço de apoio novo** entra no `profiles: ["ai"]` do Compose e ganha
+  verificação em `lib/aiReadiness.ts`.
+
+Referência completa: `specs/001-disable-ai-features/`.

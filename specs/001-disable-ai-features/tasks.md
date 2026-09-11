@@ -104,8 +104,8 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 2
 
-- [X] - [X] T038 [P] [US2] Teste em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, nada invoca `ensureQdrantCollection` nem instancia a fila (clientes espionados) — **unitário em vez de integração**: a verificação vive em `lib/aiReadiness.ts`, fora do `buildApp`, e o teste unitário a exercita com precisão maior
-- [X] - [X] T039 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/env.test.ts` cobrindo os dois lados de T002: `OPENAI_API_KEY` ausente **aceita** com IA desligada e **rejeitada** com IA ligada
+- [X] T038 [P] [US2] Teste em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, nada invoca `ensureQdrantCollection` nem instancia a fila (clientes espionados) — **unitário em vez de integração**: a verificação vive em `lib/aiReadiness.ts`, fora do `buildApp`, e o teste unitário a exercita com precisão maior
+- [X] T039 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/env.test.ts` cobrindo os dois lados de T002: `OPENAI_API_KEY` ausente **aceita** com IA desligada e **rejeitada** com IA ligada
 - [X] T040 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com a IA ligada e o Redis inalcançável, a verificação de inicialização registra aviso específico e **não** derruba a aplicação; e que nada é registrado com a IA desligada (FR-018)
 
 ### Implementation for User Story 2
@@ -177,11 +177,11 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T069 [P] Documentar o interruptor de dois níveis e os perfis do Compose em `README.md` e `MI-server/CLAUDE.md`
-- [ ] T070 [P] Verificar a cobertura das funções tocadas com `npm --prefix MI-server run test:coverage`, atendendo ao Princípio V
-- [ ] T071 Executar a suíte completa nas duas pontas — `test:unit`, `test:integration` e `npm --prefix front run test` — confirmando que nenhum fluxo não-IA teve expectativa alterada (SC-005)
-- [ ] T072 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, medindo o consumo de memória para comparar com a linha de base de ~533 MiB (SC-002)
-- [ ] T073 Confirmar `git diff --stat --diff-filter=D main...001-disable-ai-features` com saída vazia, provando que nenhum arquivo foi removido (SC-007)
+- [X] T069 [P] Documentar o interruptor de dois níveis e os perfis do Compose em `README.md` e `MI-server/CLAUDE.md`
+- [X] T070 [P] Verificar a cobertura das funções tocadas com `npm --prefix MI-server run test:coverage`, atendendo ao Princípio V
+- [X] T071 Executar a suíte completa nas duas pontas — `test:unit`, `test:integration` e `npm --prefix front run test` — confirmando que nenhum fluxo não-IA teve expectativa alterada (SC-005)
+- [X] T072 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, medindo o consumo de memória para comparar com a linha de base de ~533 MiB (SC-002)
+- [X] T073 Confirmar `git diff --stat --diff-filter=D main...001-disable-ai-features` com saída vazia, provando que nenhum arquivo foi removido (SC-007)
 
 ---
 
