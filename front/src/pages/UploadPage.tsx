@@ -13,6 +13,10 @@ import { useAuth } from '../context/AuthContext'
 import { AppShell } from '../components/AppShell'
 import { BnccHabilidadePicker } from '../components/BnccHabilidadePicker'
 import { canUploadMaterials } from '../lib/permissions'
+
+/** Espelham os limites validados no servidor — ver materialPdfUploadSchema.ts. */
+const DESCRIPTION_MIN_LENGTH = 50
+const DESCRIPTION_MAX_LENGTH = 2000
 import { useUploadMaterial } from '../features/materials/hooks/useUploadMaterial'
 import { useMyOrganizations } from '../features/organizations/hooks/useMyOrganizations'
 import { getApiErrorCode, getApiErrorMessage } from '../lib/apiError'
@@ -209,6 +213,7 @@ export function UploadPage() {
 
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [habilidadesBncc, setHabilidadesBncc] = useState<string[]>([])
   const [selectedOrgId, setSelectedOrgId] = useState('')
 
@@ -227,6 +232,15 @@ export function UploadPage() {
 
   const activeOrgs = orgs?.filter((o) => o.status === 'ACTIVE') ?? []
 
+  // Os mesmos limites validados no servidor. Aqui eles servem para o usuário
+  // conhecer a regra ANTES de tentar enviar (FR-007), não para substituir a
+  // validação — que continua no service.
+  const descricaoAparada = description.trim()
+  const descricaoCurta   = descricaoAparada.length < DESCRIPTION_MIN_LENGTH
+  const descricaoLonga   = descricaoAparada.length > DESCRIPTION_MAX_LENGTH
+  const descricaoValida  = !descricaoCurta && !descricaoLonga
+  const tituloValido     = title.trim().length > 0
+
   function handleFileSelect(selected: File) {
     setFile(selected)
     if (!title.trim()) {
@@ -241,9 +255,11 @@ export function UploadPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file) return
+    if (!tituloValido || !descricaoValida) return
     mutate({
       file,
-      title: title.trim() || undefined,
+      title: title.trim(),
+      description: descricaoAparada,
       habilidadesBncc: habilidadesBncc.length ? habilidadesBncc : undefined,
       organizationId: selectedOrgId || undefined,
     })
@@ -252,6 +268,7 @@ export function UploadPage() {
   function handleUploadAnother() {
     setFile(null)
     setTitle('')
+    setDescription('')
     setHabilidadesBncc([])
     setSelectedOrgId('')
     reset()
@@ -321,7 +338,7 @@ export function UploadPage() {
                 <div className="space-y-1.5">
                   <label htmlFor="mi-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Título
-                    <span className="ml-1 text-xs text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+                    <span className="ml-1 text-xs text-red-500 font-normal">*</span>
                   </label>
                   <input
                     id="mi-title"
@@ -339,7 +356,39 @@ export function UploadPage() {
                                transition-colors"
                   />
                   <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Se não preenchido, o nome do arquivo será usado como título.
+                    Obrigatório, até 255 caracteres.
+                  </p>
+                </div>
+
+                {/* Descrição */}
+                <div className="space-y-1.5">
+                  <label htmlFor="mi-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Descrição
+                    <span className="ml-1 text-xs text-red-500 font-normal">*</span>
+                  </label>
+                  <textarea
+                    id="mi-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Descreva o conteúdo do material, a proposta pedagógica e a quem se destina."
+                    rows={5}
+                    maxLength={DESCRIPTION_MAX_LENGTH}
+                    disabled={isUploading || !canUpload}
+                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm
+                               text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500
+                               bg-white dark:bg-gray-800 resize-y
+                               focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30
+                               disabled:bg-gray-50 dark:disabled:bg-gray-900 disabled:cursor-not-allowed
+                               transition-colors"
+                  />
+                  {/* Contador ao vivo: a regra é conhecida enquanto se escreve,
+                      não descoberta por uma recusa (SC-004). */}
+                  <p className={`text-xs ${descricaoValida ? 'text-gray-400 dark:text-gray-500' : 'text-amber-600 dark:text-amber-400'}`}>
+                    {descricaoCurta
+                      ? `Faltam ${DESCRIPTION_MIN_LENGTH - descricaoAparada.length} caracteres para o mínimo de ${DESCRIPTION_MIN_LENGTH}.`
+                      : descricaoLonga
+                        ? `Excedeu em ${descricaoAparada.length - DESCRIPTION_MAX_LENGTH} caracteres o máximo de ${DESCRIPTION_MAX_LENGTH}.`
+                        : `${descricaoAparada.length} de ${DESCRIPTION_MAX_LENGTH} caracteres.`}
                   </p>
                 </div>
 
@@ -404,7 +453,7 @@ export function UploadPage() {
                 {/* Botão de envio */}
                 <button
                   type="submit"
-                  disabled={!file || isUploading || !canUpload}
+                  disabled={!file || isUploading || !canUpload || !tituloValido || !descricaoValida}
                   className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3
                              text-sm font-semibold text-white
                              hover:bg-indigo-700 active:bg-indigo-800

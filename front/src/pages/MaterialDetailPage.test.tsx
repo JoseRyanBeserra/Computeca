@@ -206,4 +206,52 @@ describe('MaterialDetailPage', () => {
       expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
     })
   })
+
+  describe('descrição do material', () => {
+    const DESCRICAO = 'Material sobre geometria plana, com atividades para o ensino fundamental.'
+
+    it('exibe a descrição abaixo das habilidades BNCC', async () => {
+      mockApi.get.mockResolvedValue({ data: material({ description: DESCRICAO }) })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      const texto = await screen.findByText(DESCRICAO)
+      expect(texto).toBeInTheDocument()
+
+      // Ordem no documento: habilidades BNCC vêm ANTES da descrição.
+      const habilidade = screen.getByText('EF03MA01')
+      expect(habilidade.compareDocumentPosition(texto) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('com description null, indica a ausência sem mensagem de erro', async () => {
+      mockApi.get.mockResolvedValue({ data: material({ description: null }) })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      expect(await screen.findByText(/Este material não possui descrição/i)).toBeInTheDocument()
+      expect(screen.queryByText(/erro/i)).not.toBeInTheDocument()
+    })
+
+    it('com description ausente no payload, trata como material antigo', async () => {
+      const semCampo = material()
+      delete (semCampo as { description?: unknown }).description
+      mockApi.get.mockResolvedValue({ data: semCampo })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      expect(await screen.findByText(/Este material não possui descrição/i)).toBeInTheDocument()
+    })
+
+    it('preserva quebras de linha da descrição', async () => {
+      const comParagrafos = 'Primeiro parágrafo.\n\nSegundo parágrafo.'
+      mockApi.get.mockResolvedValue({ data: material({ description: comParagrafos }) })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      const elemento = await screen.findByText(/Primeiro parágrafo/)
+      // `whitespace-pre-line` é o que mantém os parágrafos sem interpretar marcação.
+      expect(elemento).toHaveClass('whitespace-pre-line')
+      expect(elemento.textContent).toContain('\n\n')
+    })
+  })
 })

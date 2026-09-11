@@ -23,7 +23,9 @@ export interface UploadedMI {
 
 export interface UploadMaterialPayload {
   file: File
-  title?: string
+  title: string
+  /** Obrigatória: 50 a 2000 caracteres, validado também no servidor */
+  description: string
   habilidadesBncc?: string[]
   organizationId?: string
 }
@@ -31,9 +33,9 @@ export interface UploadMaterialPayload {
 export async function uploadMaterialRequest(payload: UploadMaterialPayload): Promise<UploadedMI> {
   const formData = new FormData()
   formData.append('file', payload.file)
-  if (payload.title?.trim()) {
-    formData.append('title', payload.title.trim())
-  }
+  // Título e descrição são obrigatórios desde a feature 003 — enviados sempre.
+  formData.append('title', payload.title.trim())
+  formData.append('description', payload.description.trim())
   if (payload.habilidadesBncc?.length) {
     // Uma habilidade por campo — o backend agrega as repetições do campo em um array
     for (const habilidade of payload.habilidadesBncc) {
@@ -77,6 +79,8 @@ export interface PendingMaterial {
   sizeBytes: number
   status: MIStatus
   vectorStatus?: VectorStatus // omitido pela API quando a IA esta desativada
+  /** `null` quando o material foi cadastrado antes da exigência de descrição */
+  description?: string | null
   habilidadesBncc: string[]
   uploadedById: string
   uploadedBy: { name: string; email: string }

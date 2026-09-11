@@ -260,6 +260,26 @@ function DetailContent({ material }: { material: PendingMaterial }) {
         )}
       </div>
 
+      {/* Descrição — abaixo das habilidades BNCC, acima do documento.
+          `null` significa material cadastrado antes da exigência: indicação
+          discreta de ausência, nunca mensagem de erro. */}
+      <div className="border-t border-gray-100 dark:border-gray-800 pt-5 space-y-2">
+        <div className="flex items-center gap-2">
+          <FileText size={15} className="text-teal-600 dark:text-teal-400" />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Descrição</h2>
+        </div>
+        {material.description ? (
+          // `whitespace-pre-line` preserva os parágrafos sem interpretar marcação.
+          <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
+            {material.description}
+          </p>
+        ) : (
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Este material não possui descrição.
+          </p>
+        )}
+      </div>
+
       {/* Recursos de IA — resumo quando pronto, ou aviso de processamento/falha */}
       <PdfPreview
         materialId={material.id}

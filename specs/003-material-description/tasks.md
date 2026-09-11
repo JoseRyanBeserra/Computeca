@@ -66,16 +66,16 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialDescription.test.ts` confirmando que `GET /mis/:id` devolve `description` preenchida para material que a possui e **`null`** para material cadastrado sem ela, sem erro
-- [ ] T016 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que a descrição é renderizada **abaixo das habilidades BNCC**
-- [ ] T017 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com `description` em `null`, aparece a indicação discreta de ausência — **sem** mensagem de erro e sem área vazia inexplicada (FR-003)
-- [ ] T018 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que quebras de linha na descrição são preservadas na exibição
+- [X] T015 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialDescription.test.ts` confirmando que `GET /mis/:id` devolve `description` preenchida para material que a possui e **`null`** para material cadastrado sem ela, sem erro
+- [X] T016 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que a descrição é renderizada **abaixo das habilidades BNCC**
+- [X] T017 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com `description` em `null`, aparece a indicação discreta de ausência — **sem** mensagem de erro e sem área vazia inexplicada (FR-003)
+- [X] T018 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que quebras de linha na descrição são preservadas na exibição
 
 ### Implementation for User Story 1
 
-- [ ] T019 [US1] Acrescentar `description?: string | null` ao tipo do material em `front/src/features/materials/api/materialsApi.ts`
-- [ ] T020 [US1] Renderizar a descrição em `front/src/pages/MaterialDetailPage.tsx` **entre o bloco de habilidades BNCC e o `<PdfPreview>`**, preservando quebras de linha e sem interpretar marcação, usando os mesmos tokens de borda e tipografia das demais seções (depende de T019)
-- [ ] T021 [US1] Tratar em `front/src/pages/MaterialDetailPage.tsx` o caso `null` com indicação discreta de ausência, distinta de erro (depende de T020)
+- [X] T019 [US1] Acrescentar `description?: string | null` ao tipo do material em `front/src/features/materials/api/materialsApi.ts`
+- [X] T020 [US1] Renderizar a descrição em `front/src/pages/MaterialDetailPage.tsx` **entre o bloco de habilidades BNCC e o `<PdfPreview>`**, preservando quebras de linha e sem interpretar marcação, usando os mesmos tokens de borda e tipografia das demais seções (depende de T019)
+- [X] T021 [US1] Tratar em `front/src/pages/MaterialDetailPage.tsx` o caso `null` com indicação discreta de ausência, distinta de erro (depende de T020)
 
 **Checkpoint**: a descrição é visível para quem consulta, e o acervo antigo não parece quebrado. É o MVP.
 
@@ -89,19 +89,19 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Teste de integração em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` cobrindo `POST /mis`: **sem descrição → 422**, **49 caracteres → 422**, **exatamente 50 → 201**, **exatamente 2000 → 201**, **2001 → 422**, **só espaços → 422**
-- [ ] T023 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que a descrição é **persistida sem os espaços das extremidades** quando enviada cercada de espaços
-- [ ] T024 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que, na recusa, **nenhum material é criado** — a contagem no banco não muda
-- [ ] T025 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o envio é bloqueado com descrição vazia e que a exigência é visível **antes** da tentativa (FR-007)
-- [ ] T026 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o contador indica quanto falta com menos de 50 caracteres e o excesso acima de 2000
-- [ ] T027 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que, com descrição válida, o envio é liberado e o campo `description` segue na requisição
+- [X] T022 [P] [US2] Teste de integração em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` cobrindo `POST /mis`: **sem descrição → 422**, **49 caracteres → 422**, **exatamente 50 → 201**, **exatamente 2000 → 201**, **2001 → 422**, **só espaços → 422**
+- [X] T023 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que a descrição é **persistida sem os espaços das extremidades** quando enviada cercada de espaços
+- [X] T024 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que, na recusa, **nenhum material é criado** — a contagem no banco não muda
+- [X] T025 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o envio é bloqueado com descrição vazia e que a exigência é visível **antes** da tentativa (FR-007)
+- [X] T026 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o contador indica quanto falta com menos de 50 caracteres e o excesso acima de 2000
+- [X] T027 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que, com descrição válida, o envio é liberado e o campo `description` segue na requisição
 
 ### Implementation for User Story 2
 
 - [X] T028 [US2] Fazer `MI-server/src/controllers/resources/materials/pdf/materialPdfUploadController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` (depende de T005)
 - [X] T029 [US2] Acrescentar a área de texto de descrição a `front/src/pages/UploadPage.tsx`, obrigatória, com `maxLength` de 2000 e contador ao vivo mostrando quanto falta para 50 ou quanto excede 2000 (depende de T019)
-- [ ] T030 [US2] Bloquear o envio em `front/src/pages/UploadPage.tsx` enquanto a descrição estiver fora dos limites, seguindo o padrão já usado pelo campo de título (depende de T029)
-- [ ] T031 [US2] Enviar `description` no `FormData` de `uploadMaterialRequest` em `front/src/features/materials/api/materialsApi.ts` (depende de T019)
+- [X] T030 [US2] Bloquear o envio em `front/src/pages/UploadPage.tsx` enquanto a descrição estiver fora dos limites, seguindo o padrão já usado pelo campo de título (depende de T029)
+- [X] T031 [US2] Enviar `description` no `FormData` de `uploadMaterialRequest` em `front/src/features/materials/api/materialsApi.ts` (depende de T019)
 
 **Checkpoint**: o caminho principal de cadastro exige descrição, e a exigência não depende da interface.
 
@@ -115,7 +115,7 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Teste de integração em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` cobrindo `POST /organizations/:orgId/mis` com os mesmos seis casos da T022 — **a regra não pode depender do caminho**
+- [X] T032 [P] [US3] Teste de integração em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` cobrindo `POST /organizations/:orgId/mis` com os mesmos seis casos da T022 — **a regra não pode depender do caminho**
 - [X] T033 [P] [US3] Teste em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` confirmando que a descrição é persistida no material vinculado à organização
 
 ### Implementation for User Story 3
@@ -128,10 +128,10 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T035 [P] Documentar o campo e a regra em `MI-server/CLAUDE.md` — descrição obrigatória de 50 a 2000 caracteres no cadastro, nullable no banco por causa do acervo anterior, e o parse compartilhado entre os dois controllers
-- [ ] T036 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
-- [ ] T037 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-005)
-- [ ] T038 Confirmar no banco que a migração preservou o acervo: `select count(*) total, count(description) com_descricao from "MaterialInstrucional";` deve mostrar `com_descricao = 0` e `total` inalterado (SC-003)
+- [X] T035 [P] Documentar o campo e a regra em `MI-server/CLAUDE.md` — descrição obrigatória de 50 a 2000 caracteres no cadastro, nullable no banco por causa do acervo anterior, e o parse compartilhado entre os dois controllers
+- [X] T036 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
+- [X] T037 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-005)
+- [X] T038 Confirmar no banco que a migração preservou o acervo: `select count(*) total, count(description) com_descricao from "MaterialInstrucional";` deve mostrar `com_descricao = 0` e `total` inalterado (SC-003)
 - [X] T039 Percorrer os 7 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo as chamadas diretas por `curl` que provam que a exigência não depende da interface
 
 ---

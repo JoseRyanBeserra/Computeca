@@ -23,12 +23,21 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+/** Descrição válida (>= 50 caracteres), obrigatória desde a feature 003. */
+const DESCRICAO_VALIDA =
+  'Material instrucional de teste com conteudo suficiente para validacao.'
+
 describe('materialsApi', () => {
   it('uploadMaterialRequest envia FormData para /mis (sem organização)', async () => {
     mockApi.post.mockResolvedValue({ data: { id: 'm1' } })
     const file = new File(['x'], 'a.pdf', { type: 'application/pdf' })
 
-    const result = await uploadMaterialRequest({ file, title: '  Titulo  ', habilidadesBncc: ['EF01', 'EF02'] })
+    const result = await uploadMaterialRequest({
+      file,
+      title: '  Titulo  ',
+      description: DESCRICAO_VALIDA,
+      habilidadesBncc: ['EF01', 'EF02'],
+    })
 
     expect(result).toEqual({ id: 'm1' })
     const [url, formData, config] = mockApi.post.mock.calls[0]
@@ -36,13 +45,19 @@ describe('materialsApi', () => {
     expect(config).toMatchObject({ headers: { 'Content-Type': 'multipart/form-data' } })
     const fd = formData as FormData
     expect(fd.get('title')).toBe('Titulo') // trim aplicado
+    expect(fd.get('description')).toBe(DESCRICAO_VALIDA)
     expect(fd.getAll('habilidadesBncc')).toEqual(['EF01', 'EF02'])
   })
 
   it('uploadMaterialRequest usa a rota da organização quando organizationId é passado', async () => {
     mockApi.post.mockResolvedValue({ data: {} })
     const file = new File(['x'], 'a.pdf')
-    await uploadMaterialRequest({ file, organizationId: 'org1' })
+    await uploadMaterialRequest({
+      file,
+      title: 'Titulo',
+      description: DESCRICAO_VALIDA,
+      organizationId: 'org1',
+    })
     expect(mockApi.post.mock.calls[0][0]).toBe('/organizations/org1/mis')
   })
 
