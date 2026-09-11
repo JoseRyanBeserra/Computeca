@@ -23,8 +23,10 @@ Três achados do código determinam o desenho:
    confere o tipo do arquivo à mão, sem `validateRequest`. A constituição (Princípio I) exige
    `nomeFluxoSchema` validado no service. Esta feature cria esse schema.
 3. **O título é exigido apenas no formulário.** O servidor tolera sua ausência e recorre ao nome do
-   arquivo. A descrição **não** repete esse padrão: a obrigatoriedade pedida é de verdade, então
-   vale no servidor (FR-006).
+   arquivo — fallback duplicado nos dois controllers, como o parse. Por decisão do responsável, o
+   título **também** passa a ser obrigatório (FR-011): `resolveTitle` deixa de existir e o valor
+   passa a vir de quem cadastra. Verificado no banco que nenhum material tem título vazio, então a
+   nova exigência não cria inconsistência com o acervo.
 
 ## Technical Context
 
@@ -43,13 +45,16 @@ Query. **Nenhuma dependência nova.**
 
 **Constraints**:
 
-- A coluna **precisa** aceitar ausência: 13 materiais já existem sem descrição, e uma coluna
-  obrigatória impediria a migração de rodar.
+- A coluna de descrição **precisa** aceitar ausência: 13 materiais já existem sem ela, e uma coluna
+  obrigatória impediria a migração de rodar. A coluna de título permanece obrigatória, como já é.
+- **Os testes de cadastro existentes mudam.** O helper de `materialUpload.test.ts` monta o
+  formulário sem descrição; tornar o campo obrigatório quebra os 8 casos daquele arquivo. Isso não
+  é regressão, é o contrato de entrada mudando de propósito — e precisa de tarefa própria.
 - O formulário de envio trafega como `multipart/form-data` — a descrição é mais um campo de texto,
   dentro do teto de 120 campos configurado no registro do multipart.
 - Nenhum caminho de edição de metadados existe no sistema: o valor gravado no cadastro é definitivo.
 
-**Scale/Scope**: 1 coluna, 1 migração, 2 controllers, 1 service, 2 telas do front.
+**Scale/Scope**: 1 coluna, 1 migração, 2 controllers, 1 service, 3 repositórios, 2 telas do front, mais a atualização dos testes de cadastro já existentes.
 
 ## Constitution Check
 

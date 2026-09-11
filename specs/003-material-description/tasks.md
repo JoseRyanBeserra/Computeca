@@ -41,7 +41,7 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 **⚠️ CRITICAL**: nenhuma história pode começar antes desta fase terminar.
 
-- [ ] T004 Criar `MI-server/src/schemas/resources/materials/pdf/materialPdfUploadSchema.ts` exportando `UploadMaterialBodySchema`, o tipo `UploadMaterialRequest`, o schema de service `materialPdfUploadSchema` (com `uploadedById`) e o tipo `UploadMaterialServiceInput`. A descrição é `z.string().trim().min(50).max(2000)` — **limites inclusivos**, contagem **após remover espaços das extremidades**, conforme FR-005. Inclui também título e habilidades, pagando a dívida do Princípio I: o upload é o único fluxo do projeto sem schema próprio
+- [ ] T004 Criar `MI-server/src/schemas/resources/materials/pdf/materialPdfUploadSchema.ts` exportando `UploadMaterialBodySchema`, o tipo `UploadMaterialRequest`, o schema de service `materialPdfUploadSchema` (com `uploadedById`) e o tipo `UploadMaterialServiceInput`. A descrição é `z.string().trim().min(50).max(2000)` — **limites inclusivos**, contagem **após remover espaços das extremidades**, conforme FR-005. O **título passa a ser obrigatório** (FR-011): `z.string().trim().min(1).max(255)` — o servidor deixa de recorrer ao nome do arquivo, e `resolveTitle` é removido dos dois controllers. Inclui também habilidades, pagando a dívida do Princípio I: o upload é o único fluxo do projeto sem schema próprio
 - [ ] T005 Criar `MI-server/src/controllers/resources/materials/pdf/shared/parseMaterialMultipart.ts` com o percurso de `request.parts()` extraído de `materialPdfUploadController`, acrescentando a leitura do campo `description`. Retorna também `organizationIds`, para servir aos dois controllers
 - [ ] T006 Fazer `MI-server/src/services/resources/materials/pdf/materialPdfUploadService.ts` validar a entrada com `validateRequest(input, materialPdfUploadSchema)` como primeira instrução, substituindo o schema inline de habilidades — conforme o Princípio I (depende de T004)
 - [ ] T007 Persistir a descrição em `MI-server/src/repositories/resources/materials/pdf/materialPdfUploadRepository.ts`, acrescentando `description: input.description` ao `data` de `createMaterialPdf` (depende de T001, T003)
@@ -51,7 +51,10 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 - [ ] T011 [P] Teste unitário em `MI-server/__tests__/unit/materials/materialPdfUploadSchema.test.ts` cobrindo os limites: **49 rejeitado, exatamente 50 aceito, exatamente 2000 aceito, 2001 rejeitado**, ausência rejeitada, string vazia rejeitada, string só de espaços rejeitada, e descrição válida cercada de espaços **aceita com o valor já sem os espaços das pontas** (depende de T004)
 - [ ] T012 [P] Teste unitário em `MI-server/__tests__/unit/materials/parseMaterialMultipart.test.ts` confirmando que o campo `description` é lido do formulário e que os demais campos seguem sendo lidos como antes (depende de T005)
 
-**Checkpoint**: a regra existe em um único lugar e o parse é compartilhado.
+- [ ] T013 Atualizar o helper `uploadMaterial` em `MI-server/__tests__/integration/materials/materialUpload.test.ts` para enviar `description` válida (>= 50 caracteres) e `title`, e conferir os **8 casos** daquele arquivo. **Sem esta tarefa a suíte fica vermelha assim que a T006 entrar** — não é regressão, é o contrato de entrada mudando de propósito (depende de T006)
+- [ ] T014 Atualizar os envios de material em `MI-server/__tests__/integration/organizations/orgMaterials.test.ts` para incluir `description` e `title` válidos, pelo mesmo motivo da T013 (depende de T006)
+
+**Checkpoint**: a regra existe em um único lugar, o parse é compartilhado e a suíte existente segue verde.
 
 ---
 
@@ -63,16 +66,16 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialDescription.test.ts` confirmando que `GET /mis/:id` devolve `description` preenchida para material que a possui e **`null`** para material cadastrado sem ela, sem erro
-- [ ] T014 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que a descrição é renderizada **abaixo das habilidades BNCC**
-- [ ] T015 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com `description` em `null`, aparece a indicação discreta de ausência — **sem** mensagem de erro e sem área vazia inexplicada (FR-003)
-- [ ] T016 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que quebras de linha na descrição são preservadas na exibição
+- [ ] T015 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialDescription.test.ts` confirmando que `GET /mis/:id` devolve `description` preenchida para material que a possui e **`null`** para material cadastrado sem ela, sem erro
+- [ ] T016 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que a descrição é renderizada **abaixo das habilidades BNCC**
+- [ ] T017 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com `description` em `null`, aparece a indicação discreta de ausência — **sem** mensagem de erro e sem área vazia inexplicada (FR-003)
+- [ ] T018 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que quebras de linha na descrição são preservadas na exibição
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Acrescentar `description?: string | null` ao tipo do material em `front/src/features/materials/api/materialsApi.ts`
-- [ ] T018 [US1] Renderizar a descrição em `front/src/pages/MaterialDetailPage.tsx` **entre o bloco de habilidades BNCC e o `<PdfPreview>`**, preservando quebras de linha e sem interpretar marcação, usando os mesmos tokens de borda e tipografia das demais seções (depende de T017)
-- [ ] T019 [US1] Tratar em `front/src/pages/MaterialDetailPage.tsx` o caso `null` com indicação discreta de ausência, distinta de erro (depende de T018)
+- [ ] T019 [US1] Acrescentar `description?: string | null` ao tipo do material em `front/src/features/materials/api/materialsApi.ts`
+- [ ] T020 [US1] Renderizar a descrição em `front/src/pages/MaterialDetailPage.tsx` **entre o bloco de habilidades BNCC e o `<PdfPreview>`**, preservando quebras de linha e sem interpretar marcação, usando os mesmos tokens de borda e tipografia das demais seções (depende de T019)
+- [ ] T021 [US1] Tratar em `front/src/pages/MaterialDetailPage.tsx` o caso `null` com indicação discreta de ausência, distinta de erro (depende de T020)
 
 **Checkpoint**: a descrição é visível para quem consulta, e o acervo antigo não parece quebrado. É o MVP.
 
@@ -86,19 +89,19 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Tests for User Story 2
 
-- [ ] T020 [P] [US2] Teste de integração em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` cobrindo `POST /mis`: **sem descrição → 422**, **49 caracteres → 422**, **exatamente 50 → 201**, **exatamente 2000 → 201**, **2001 → 422**, **só espaços → 422**
-- [ ] T021 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que a descrição é **persistida sem os espaços das extremidades** quando enviada cercada de espaços
-- [ ] T022 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que, na recusa, **nenhum material é criado** — a contagem no banco não muda
-- [ ] T023 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o envio é bloqueado com descrição vazia e que a exigência é visível **antes** da tentativa (FR-007)
-- [ ] T024 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o contador indica quanto falta com menos de 50 caracteres e o excesso acima de 2000
-- [ ] T025 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que, com descrição válida, o envio é liberado e o campo `description` segue na requisição
+- [ ] T022 [P] [US2] Teste de integração em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` cobrindo `POST /mis`: **sem descrição → 422**, **49 caracteres → 422**, **exatamente 50 → 201**, **exatamente 2000 → 201**, **2001 → 422**, **só espaços → 422**
+- [ ] T023 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que a descrição é **persistida sem os espaços das extremidades** quando enviada cercada de espaços
+- [ ] T024 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialDescriptionUpload.test.ts` confirmando que, na recusa, **nenhum material é criado** — a contagem no banco não muda
+- [ ] T025 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o envio é bloqueado com descrição vazia e que a exigência é visível **antes** da tentativa (FR-007)
+- [ ] T026 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que o contador indica quanto falta com menos de 50 caracteres e o excesso acima de 2000
+- [ ] T027 [P] [US2] Teste em `front/src/pages/UploadPage.test.tsx` confirmando que, com descrição válida, o envio é liberado e o campo `description` segue na requisição
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Fazer `MI-server/src/controllers/resources/materials/pdf/materialPdfUploadController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` (depende de T005)
-- [ ] T027 [US2] Acrescentar a área de texto de descrição a `front/src/pages/UploadPage.tsx`, obrigatória, com `maxLength` de 2000 e contador ao vivo mostrando quanto falta para 50 ou quanto excede 2000 (depende de T017)
-- [ ] T028 [US2] Bloquear o envio em `front/src/pages/UploadPage.tsx` enquanto a descrição estiver fora dos limites, seguindo o padrão já usado pelo campo de título (depende de T027)
-- [ ] T029 [US2] Enviar `description` no `FormData` de `uploadMaterialRequest` em `front/src/features/materials/api/materialsApi.ts` (depende de T017)
+- [ ] T028 [US2] Fazer `MI-server/src/controllers/resources/materials/pdf/materialPdfUploadController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` (depende de T005)
+- [ ] T029 [US2] Acrescentar a área de texto de descrição a `front/src/pages/UploadPage.tsx`, obrigatória, com `maxLength` de 2000 e contador ao vivo mostrando quanto falta para 50 ou quanto excede 2000 (depende de T019)
+- [ ] T030 [US2] Bloquear o envio em `front/src/pages/UploadPage.tsx` enquanto a descrição estiver fora dos limites, seguindo o padrão já usado pelo campo de título (depende de T029)
+- [ ] T031 [US2] Enviar `description` no `FormData` de `uploadMaterialRequest` em `front/src/features/materials/api/materialsApi.ts` (depende de T019)
 
 **Checkpoint**: o caminho principal de cadastro exige descrição, e a exigência não depende da interface.
 
@@ -112,13 +115,12 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Tests for User Story 3
 
-- [ ] T030 [P] [US3] Teste de integração em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` cobrindo `POST /organizations/:orgId/mis` com os mesmos seis casos da T020 — **a regra não pode depender do caminho**
-- [ ] T031 [P] [US3] Teste em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` confirmando que a descrição é persistida no material vinculado à organização
+- [ ] T032 [P] [US3] Teste de integração em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` cobrindo `POST /organizations/:orgId/mis` com os mesmos seis casos da T022 — **a regra não pode depender do caminho**
+- [ ] T033 [P] [US3] Teste em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` confirmando que a descrição é persistida no material vinculado à organização
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Fazer `MI-server/src/controllers/organizations/materials/uploadOrgMaterialController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` — é o que torna a garantia **estrutural** em vez de depender de alguém lembrar de alterar os dois controllers (depende de T005)
-- [ ] T033 [US3] Enviar `description` também no envio vinculado a organização em `front/src/features/materials/api/materialsApi.ts`, se o fluxo do front usar caminho distinto (depende de T029)
+- [ ] T034 [US3] Fazer `MI-server/src/controllers/organizations/materials/uploadOrgMaterialController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` — é o que torna a garantia **estrutural** em vez de depender de alguém lembrar de alterar os dois controllers (depende de T005)
 
 **Checkpoint**: não há porta lateral por onde entre material sem descrição.
 
@@ -126,11 +128,11 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] Documentar o campo e a regra em `MI-server/CLAUDE.md` — descrição obrigatória de 50 a 2000 caracteres no cadastro, nullable no banco por causa do acervo anterior, e o parse compartilhado entre os dois controllers
-- [ ] T035 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
-- [ ] T036 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-005)
-- [ ] T037 Confirmar no banco que a migração preservou o acervo: `select count(*) total, count(description) com_descricao from "MaterialInstrucional";` deve mostrar `com_descricao = 0` e `total` inalterado (SC-003)
-- [ ] T038 Percorrer os 7 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo as chamadas diretas por `curl` que provam que a exigência não depende da interface
+- [ ] T035 [P] Documentar o campo e a regra em `MI-server/CLAUDE.md` — descrição obrigatória de 50 a 2000 caracteres no cadastro, nullable no banco por causa do acervo anterior, e o parse compartilhado entre os dois controllers
+- [ ] T036 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
+- [ ] T037 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-005)
+- [ ] T038 Confirmar no banco que a migração preservou o acervo: `select count(*) total, count(description) com_descricao from "MaterialInstrucional";` deve mostrar `com_descricao = 0` e `total` inalterado (SC-003)
+- [ ] T039 Percorrer os 7 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo as chamadas diretas por `curl` que provam que a exigência não depende da interface
 
 ---
 
@@ -147,10 +149,10 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 - **US1 (P1)**: independente após a Fase 2. Só precisa que o campo exista e trafegue
 - **US2 (P1)**: independente após a Fase 2
-- **US3 (P2)**: depende do parse compartilhado (T005) e, no front, do envio implementado na US2 (T029)
+- **US3 (P2)**: depende do parse compartilhado (T005) e, no front, do envio implementado na US2 (T031)
 
 US1 e US2 tocam arquivos diferentes no front (`MaterialDetailPage` e `UploadPage`), mas **ambas
-alteram `materialsApi.ts`** — T017 é pré-requisito das duas e por isso vive na US1.
+alteram `materialsApi.ts`** — T019 é pré-requisito das duas e por isso vive na US1.
 
 ### Parallel Opportunities
 
@@ -158,7 +160,7 @@ alteram `materialsApi.ts`** — T017 é pré-requisito das duas e por isso vive 
 - T011 e T012 em paralelo
 - Todos os testes de uma mesma história marcados `[P]`
 - US1 (front de exibição) e US2 (back de validação) podem correr em paralelo por pessoas diferentes
-- **Atenção**: T014, T015 e T016 tocam o mesmo arquivo de teste; T023, T024 e T025 também
+- **Atenção**: T016, T017 e T018 tocam o mesmo arquivo de teste; T025, T026 e T027 também
 
 ---
 

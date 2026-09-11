@@ -93,7 +93,8 @@ descrição já é obrigatória.
 
 | Entidade | Tratamento |
 |---|---|
-| `MaterialInstrucional` | Todos os demais campos inalterados. Título continua com o comportamento atual, inclusive a tolerância do servidor à sua ausência — corrigir isso está fora do escopo. |
+| `MaterialInstrucional` — coluna `title` | **A coluna não muda**: continua `String` obrigatória, como sempre foi. O que muda é a **entrada**: o servidor deixa de preencher o título com o nome do arquivo quando ele vem ausente. Nenhum material do acervo é afetado — verificado que nenhum tem título vazio. |
+| `MaterialInstrucional` — demais campos | Inalterados. |
 | `AuditLog` | Nenhum registro novo. A criação do material já é auditada; a descrição é mais um dado do mesmo evento. |
 | `InspectionLog` | Inalterado. Nenhum controller novo. |
 | `AppSetting` | Não é consultado. A descrição não é governada por interruptor. |

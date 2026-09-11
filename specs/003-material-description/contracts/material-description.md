@@ -20,6 +20,7 @@ Ambas as rotas recebem `multipart/form-data`.
 | Campo | Tipo | Obrigatório | Regra |
 |---|---|---|---|
 | `description` | texto | **sim** | 50 a 2000 caracteres, contados após remover espaços das extremidades. Limites inclusivos. |
+| `title` | texto | **sim** (passa a ser) | 1 a 255 caracteres, após remover espaços das extremidades. O servidor **deixa de** recorrer ao nome do arquivo quando ausente. |
 
 ### Tipos e schemas
 
@@ -42,6 +43,9 @@ do projeto.
 | Descrição com menos de 50 caracteres | `422` |
 | Descrição com mais de 2000 caracteres | `422` |
 | Descrição composta só de espaços | `422` — o `trim` a reduz a zero caractere |
+| Título ausente | `422` — não há mais fallback para o nome do arquivo |
+| Título só de espaços | `422` |
+| Título com mais de 255 caracteres | `422` |
 
 O `422` vem do `ZodError` capturado pelo `errorHandler` global, o caminho já estabelecido no projeto
 para erro de validação. A resposta carrega o campo e a regra violada.
@@ -121,7 +125,10 @@ por uma recusa.
 | Descrição com exatamente 2000 caracteres | `201` — limite inclusivo |
 | Descrição com 2001 caracteres | `422` |
 | Descrição só de espaços | `422` |
-| **Os sete casos acima pela rota de organização** | Mesmo resultado — a regra não depende do caminho |
+| Título ausente | `422` — o fallback para nome do arquivo deixa de existir |
+| Título só de espaços | `422` |
+| Título com 256 caracteres | `422` |
+| **Todos os casos acima pela rota de organização** | Mesmo resultado — a regra não depende do caminho |
 | Consulta de material antigo | `description` vem `null`, sem erro |
 | Consulta de material novo | `description` vem preenchida |
 

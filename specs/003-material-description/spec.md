@@ -66,6 +66,9 @@ confirmando a recusa; cadastrar com descrição válida e confirmar o sucesso.
    envio é impedido — espaço em branco não é descrição.
 6. **Given** uma tentativa de cadastro que contorne o formulário, **When** ela chega ao sistema sem
    descrição válida, **Then** é recusada — a exigência não depende da interface.
+7. **Given** um envio sem título, **When** submetido, **Then** é recusado. O servidor deixa de
+   recorrer ao nome do arquivo: título passa a ser informação que o autor fornece, não que o
+   sistema adivinha.
 
 ---
 
@@ -120,32 +123,42 @@ recusa do caminho direto.
   vinculado a uma organização.
 - **FR-009**: Materiais cadastrados antes desta mudança MUST permanecer válidos e consultáveis, sem
   descrição, sem qualquer interrupção de funcionamento.
-- **FR-010**: A introdução da descrição MUST NOT alterar o comportamento de nenhum outro campo ou
-  fluxo do material — título, habilidades BNCC, arquivo, aprovação e exclusão permanecem como estão.
-- **FR-011**: A cobertura de testes MUST exercitar a exibição com e sem descrição, a recusa por
-  ausência, por texto curto demais, por texto longo demais e por espaços em branco, nos dois
-  caminhos de cadastro.
+- **FR-010**: A mudança MUST NOT alterar o comportamento de nenhum fluxo alheio ao cadastro —
+  habilidades BNCC, arquivo, aprovação, exclusão, download e pré-visualização permanecem como estão.
+  As únicas regras de entrada que mudam são as de descrição e título, ambas no cadastro.
+- **FR-011**: O **título** MUST ser obrigatório em todo cadastro de material novo, com no máximo
+  **255** caracteres, contados após remover espaços das extremidades. Hoje o servidor tolera sua
+  ausência e recorre ao nome do arquivo; essa tolerância deixa de existir.
+- **FR-012**: A cobertura de testes MUST exercitar a exibição com e sem descrição, e a recusa por
+  ausência de descrição, por texto curto demais, por texto longo demais, por espaços em branco e
+  por ausência de título, **nos dois caminhos de cadastro**.
 
 ### Key Entities
 
 - **Material Instrucional**: ganha o atributo **descrição** — texto livre, opcional no
-  armazenamento (para comportar o acervo já existente) e obrigatório no cadastro de material novo.
-  Nenhum outro atributo é alterado.
+  armazenamento (para comportar o acervo já existente) e obrigatório no cadastro de material novo,
+  entre 50 e 2000 caracteres.
+- **Título** (atributo já existente): deixa de ser preenchido automaticamente pelo sistema. A
+  coluna continua obrigatória no banco, como sempre foi; o que muda é que o **valor precisa vir de
+  quem cadastra**, com no máximo 255 caracteres. Nenhum material do acervo é afetado — todos já
+  possuem título.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: 100% dos materiais cadastrados após esta mudança possuem descrição com pelo menos 50
-  caracteres.
+  caracteres e título fornecido por quem cadastrou, não derivado do nome do arquivo.
 - **SC-002**: Nenhum cadastro sem descrição válida é aceito, inclusive por requisição que não passe
   pelo formulário.
 - **SC-003**: 100% dos materiais anteriores à mudança continuam consultáveis, e sua tela de
   detalhes não apresenta erro nem área vazia sem explicação.
 - **SC-004**: Quem preenche o formulário sabe que a descrição é exigida antes de tentar enviar, e
   não descobre a regra por uma recusa.
-- **SC-005**: Todos os fluxos existentes de material passam na suíte de testes sem alteração de
-  expectativa.
+- **SC-005**: Nenhum fluxo alheio ao cadastro muda de comportamento — consulta, aprovação,
+  exclusão, download e pré-visualização seguem idênticos. Os testes de **cadastro** são atualizados
+  para enviar os campos agora exigidos: tornar um campo obrigatório é, por definição, uma mudança
+  de contrato de entrada, e fingir o contrário produziria um critério impossível de cumprir.
 
 ## Assumptions
 
@@ -163,3 +176,9 @@ recusa do caminho direto.
   descrição acompanha o material.
 - **Os limites de 50 e 2000 caracteres** foram definidos pelo responsável pelo projeto, para
   garantir descrição substancial num acervo acadêmico sem transformar o cadastro em redação.
+- **O título passa a ser obrigatório junto com a descrição**, por decisão do responsável. Hoje o
+  servidor aceita cadastro sem título e usa o nome do arquivo — um título como
+  `documento_final_v3` não ajuda ninguém a encontrar o material. O limite de 255 caracteres
+  acompanha o que o formulário já aplica.
+- **Nenhum material do acervo tem título vazio**, verificado no banco, então a nova exigência não
+  cria inconsistência com o que já existe.

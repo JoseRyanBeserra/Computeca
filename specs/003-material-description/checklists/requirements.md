@@ -43,3 +43,28 @@
 - Também revelou que o **título** hoje é exigido apenas no formulário — o servidor tolera sua
   ausência e recorre ao nome do arquivo. A descrição não seguirá esse padrão: o FR-006 exige
   validação no servidor, porque a obrigatoriedade pedida é de verdade, não de interface.
+
+## Emendas após `/speckit-analyze` (2026-09-11)
+
+A análise apontou cinco achados, incluindo **um CRITICAL**. Os quatro acionáveis foram resolvidos
+por decisão do responsável pelo projeto:
+
+- **X1 (CRITICAL) — SC-005 era impossível de cumprir.** Ele exigia que todos os fluxos existentes
+  passassem "sem alteração de expectativa", enquanto o FR-004 tornava a descrição obrigatória. As
+  duas frases não podiam ser verdade ao mesmo tempo. Reescrito: o que não pode mudar é tudo que não
+  seja cadastro; os testes de cadastro acompanham a nova regra, porque tornar um campo obrigatório
+  **é** uma mudança de contrato de entrada.
+- **G1 (HIGH) — 8 testes quebrariam sem tarefa prevista.** O helper de `materialUpload.test.ts`
+  monta o formulário sem descrição. Acrescentadas T013 e T014 na fase fundacional, antes de a
+  validação entrar.
+- **U1 (MEDIUM) — condicional não resolvida.** A tarefa do front para o caminho de organização
+  dizia "se o fluxo usar caminho distinto". Verificado que **não usa**: `uploadMaterialRequest` já
+  escolhe a rota por `organizationId`. Tarefa removida.
+- **I1 (MEDIUM) — título.** O plano incluiria o título num schema obrigatório de carona, mudando
+  seu comportamento sem requisito. Decisão do responsável: **tornar o título obrigatório de
+  propósito** (FR-011), removendo o fallback para o nome do arquivo. Verificado no banco que nenhum
+  material tem título vazio, então a exigência não cria inconsistência com o acervo.
+- **A1 (LOW)** aceito como está: "clara e discreta" é tornado testável pela tarefa correspondente.
+
+Contradição interna corrigida na mesma passagem: o FR-010 dizia que o título permanecia como
+estava, o que passou a contradizer o FR-011. Reescrito para falar de fluxos alheios ao cadastro.
