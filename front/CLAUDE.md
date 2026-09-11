@@ -49,6 +49,21 @@ manualmente, em navegador sem suporte a PDF embutido.
 
 ## Cadastro de material
 
+**Existem DOIS formulários de cadastro**, e toda regra nova precisa valer nos dois:
+
+| Tela | Envia para |
+|---|---|
+| `pages/UploadPage.tsx` | `POST /mis` |
+| `pages/OrganizationDetailPage.tsx` | `POST /organizations/:orgId/mis` |
+
+No servidor os dois caminhos compartilham schema e parse, então uma regra nova vale
+automaticamente para ambos. **No front eles não compartilham nada** — são telas e funções de API
+separadas. Foi assim que a descrição obrigatória entrou valendo só na primeira, e todo envio por
+projeto passou a voltar 422 sem que nenhum teste percebesse: os testes conferiam que houve POST,
+nunca o corpo enviado. **Asseverar o conteúdo do `FormData`**, não só a chamada.
+
+Os limites vivem em `features/materials/constants.ts` — importe de lá, nunca redeclare na tela.
+
 Título e descrição são **obrigatórios**. Os limites do formulário espelham os do servidor:
 
 - Título: 1 a 255 caracteres
