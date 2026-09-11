@@ -136,13 +136,49 @@ describe('OrganizationDetailPage', () => {
     await user.upload(fileInput, file)
     // aguarda o estado do arquivo ser refletido na UI antes de submeter
     expect(await screen.findByText(/n\.pdf —/i)).toBeInTheDocument()
+
+    // Título e descrição são obrigatórios — o servidor recusa sem eles.
+    fireEvent.change(screen.getByLabelText(/Título/i), { target: { value: 'Novo PDF' } })
+    fireEvent.change(screen.getByLabelText(/Descrição/i), { target: { value: 'd'.repeat(60) } })
+
     // submete o form diretamente — o input[type=file] required faz o jsdom
     // bloquear o submit nativo por constraint validation.
     fireEvent.submit(fileInput.closest('form')!)
 
     await waitFor(() => expect(mockApi.post).toHaveBeenCalled())
     expect(mockApi.post.mock.calls[0][0]).toBe('/organizations/o1/mis')
+
+    // O corpo enviado importa: o teste anterior só conferia que houve POST, e
+    // por isso não percebeu que ele saía sem descrição e voltava 422.
+    const formData = mockApi.post.mock.calls[0][1] as FormData
+    expect(formData.get('title')).toBe('Novo PDF')
+    expect(formData.get('description')).toBe('d'.repeat(60))
+
     expect(await screen.findByText(/enviado para revisão/i)).toBeInTheDocument()
+  })
+
+  it('não envia material do projeto sem título ou com descrição curta', async () => {
+    mockGets()
+    const user = userEvent.setup()
+    const { container } = renderWithProviders(<OrganizationDetailPage />, { route: '/organizations/o1', path: '/organizations/:orgId' })
+
+    await screen.findByText('Projeto Gamma')
+    const file = new File(['x'], 'n.pdf', { type: 'application/pdf' })
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
+    await user.upload(fileInput, file)
+    expect(await screen.findByText(/n\.pdf —/i)).toBeInTheDocument()
+
+    // Só o arquivo: era exatamente este envio que o servidor recusava com 422.
+    fireEvent.submit(fileInput.closest('form')!)
+    await waitFor(() => expect(mockApi.post).not.toHaveBeenCalled())
+
+    // Título preenchido, descrição ainda abaixo do mínimo de 50.
+    fireEvent.change(screen.getByLabelText(/Título/i), { target: { value: 'Novo PDF' } })
+    fireEvent.change(screen.getByLabelText(/Descrição/i), { target: { value: 'curta' } })
+    expect(screen.getByText(/Faltam 45 caracteres/i)).toBeInTheDocument()
+
+    fireEvent.submit(fileInput.closest('form')!)
+    await waitFor(() => expect(mockApi.post).not.toHaveBeenCalled())
   })
 
   it('abre o PDF de um material do projeto', async () => {
