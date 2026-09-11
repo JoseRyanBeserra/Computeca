@@ -15,6 +15,25 @@ export interface UploadMIInput {
   organizationIds?: string[]
 }
 
+/**
+ * Payload interno da edição de material, passado do controller para o service.
+ *
+ * `buffer` opcional é o que expressa "não trocar o documento": ausente significa
+ * manter o arquivo atual. Os três campos de arquivo andam juntos — ou vêm todos,
+ * ou nenhum vem.
+ */
+export interface EditMIInput {
+  materialId: string
+  title: string
+  description: string
+  habilidadesBncc?: string[]
+  /** Ausente = manter o documento atual */
+  buffer?: Buffer
+  originalFileName?: string
+  mimeType?: string
+  editedById: string
+}
+
 /** URL pré-assinada para visualização temporária */
 export interface IMaterialPresignedUrl {
   url: string

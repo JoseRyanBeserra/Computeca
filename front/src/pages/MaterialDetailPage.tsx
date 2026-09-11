@@ -2,12 +2,14 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, FileText, ExternalLink, AlertCircle, RefreshCw, Loader2,
+  ArrowLeft,
+  Pencil, FileText, ExternalLink, AlertCircle, RefreshCw, Loader2,
   Clock, CheckCircle2, XCircle, User, HardDrive, Calendar, Sparkles, Cog,
 } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { HabilidadesBncc } from '../components/HabilidadesBncc'
 import { useAuth } from '../context/AuthContext'
+import { isSysAdmin } from '../lib/permissions'
 import { canUseAiChat } from '../lib/permissions'
 import { useFeatures } from '../features/config/hooks/useFeatures'
 import { PdfPreview } from '../components/PdfPreview'
@@ -205,7 +207,23 @@ function DetailContent({ material }: { material: PendingMaterial }) {
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug">
               {material.title}
             </h1>
-            <StatusBadge status={material.status} />
+            <div className="flex items-center gap-2">
+              <StatusBadge status={material.status} />
+              {/* Só o ADMIN edita. Ocultar aqui é conveniência — a proteção real
+                  está no servidor, que recusa qualquer outro perfil. */}
+              {isSysAdmin(user) && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/materials/${material.id}/edit`)}
+                  className="flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-gray-600
+                             px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300
+                             hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <Pencil size={13} />
+                  Editar
+                </button>
+              )}
+            </div>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 break-all">
             {material.originalFileName}

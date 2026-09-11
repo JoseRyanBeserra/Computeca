@@ -17,7 +17,7 @@ export const TITLE_MAX_LENGTH = 255
  * Habilidades BNCC são OPCIONAIS: a lista sempre existe, mas pode ser vazia.
  * Normaliza para strings sem espaços, sem vazios e sem duplicados.
  */
-const habilidadesBnccSchema = z
+export const habilidadesBnccSchema = z
   .array(z.string())
   .optional()
   .default([])
@@ -27,7 +27,7 @@ const habilidadesBnccSchema = z
  * O `.trim()` antes do `.min()` é o que atende ao FR-005: ninguém é reprovado
  * por espaços que nem vê, nem aprovado por uma descrição de 50 espaços.
  */
-const descriptionSchema = z
+export const descriptionSchema = z
   .string({ message: 'A descrição é obrigatória.' })
   .trim()
   .min(DESCRIPTION_MIN_LENGTH, `A descrição deve ter pelo menos ${DESCRIPTION_MIN_LENGTH} caracteres.`)
@@ -38,7 +38,7 @@ const descriptionSchema = z
  * recorrer ao nome do arquivo quando ele vinha ausente — um título como
  * `documento_final_v3` não ajuda ninguém a encontrar o material.
  */
-const titleSchema = z
+export const titleSchema = z
   .string({ message: 'O título é obrigatório.' })
   .trim()
   .min(1, 'O título é obrigatório.')

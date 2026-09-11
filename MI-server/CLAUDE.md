@@ -248,4 +248,52 @@ Nullable no banco, obrigatória na entrada. `null` significa **"cadastrado antes
 não vazio — o schema recusa string vazia, então nenhum material novo chega a `''`. A tela de
 detalhes usa essa distinção para indicar ausência sem parecer erro.
 
-**Não existe fluxo de edição de metadados**: o valor gravado no cadastro é definitivo.
+---
+
+## Edição de material — `PUT /mis/:id`
+
+Restrita a **ADMIN, e somente ele**: nem PROFESSOR, nem o autor do material. Autoria não dá direito
+de alterar.
+
+O corpo carrega o **conjunto completo** dos metadados editáveis (`title`, `description`,
+`habilidadesBncc`), nunca um subconjunto: campo opcional tornaria "omiti a descrição"
+indistinguível de "mantenha a atual", e uma descrição inválida atravessaria a edição sem ser
+conferida. O schema **importa** `titleSchema` e `descriptionSchema` do cadastro — não os redeclara.
+
+`file` é opcional; sua ausência significa "manter o documento atual".
+
+### A ordem das operações da troca de arquivo — não simplifique
+
+```
+1. valida o arquivo novo      — antes de tocar em qualquer coisa
+2. grava sob CHAVE NOVA       — o antigo segue íntegro e servível
+3. atualiza o registro        — só agora o material aponta para o novo
+4. remove o arquivo antigo    — por último, e só por último
+```
+
+**Sobrescrever a chave existente parece mais simples e destrói o documento original antes de se
+saber se o novo chegou inteiro.** A remoção é definitiva: nada no sistema recupera o objeto apagado.
+
+O tratamento de falha é assimétrico de propósito:
+
+| Falha ao | Resultado |
+| --- | --- |
+| Gravar o arquivo novo | Nada mudou |
+| Atualizar o registro | Remove o arquivo novo e desfaz. Nada mudou |
+| **Remover o antigo** | **A edição vale.** Advertência no log — arquivo órfão é incômodo, material sem documento é tela quebrada |
+
+Trocar o documento de material `APPROVED` o devolve a `PENDING_REVIEW` (a aprovação foi dada a outro
+documento) e **invalida resumo e vetorização**, que descreviam o arquivo que saiu.
+
+### Auditoria
+
+`AuditLog` com ação `MI_UPDATED` e `metadata` contendo **apenas os campos alterados**, cada um com
+`from` e `to` — o diff sai de `utils/buildMaterialEditDiff.ts`, função pura. Edição que não altera
+nada **não atualiza e não registra**.
+
+### Verificações de arquivo
+
+Vivem em `utils/materialFile.ts` e são consumidas pelo cadastro **e** pela edição. Não duplique:
+um arquivo que o cadastro recusaria não pode entrar pela porta da edição.
+
+Referência completa: `specs/005-material-edit/`.
