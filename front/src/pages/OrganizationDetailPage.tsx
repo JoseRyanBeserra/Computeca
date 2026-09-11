@@ -13,6 +13,11 @@ import { useRemoveMember } from '../features/organizations/hooks/useRemoveMember
 import { useLeaveOrganization } from '../features/organizations/hooks/useLeaveOrganization'
 import { useInviteUser } from '../features/organizations/hooks/useInviteUser'
 import { getPublicPresignedUrlRequest } from '../features/materials/api/materialsApi'
+import {
+  DESCRIPTION_MIN_LENGTH,
+  DESCRIPTION_MAX_LENGTH,
+  TITLE_MAX_LENGTH,
+} from '../features/materials/constants'
 import { AppShell } from '../components/AppShell'
 import type { OrgListItemDTO } from '../features/organizations/api/organizationsApi'
 
@@ -69,11 +74,20 @@ export function OrganizationDetailPage() {
 
   const [uploadFile, setUploadFile]       = useState<File | null>(null)
   const [uploadTitle, setUploadTitle]     = useState('')
+  const [uploadDesc, setUploadDesc]       = useState('')
   const [uploadError, setUploadError]     = useState('')
   const [uploadSuccess, setUploadSuccess] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [actionError, setActionError] = useState('')
+
+  // Os mesmos limites do servidor, para o autor conhecer a regra enquanto
+  // escreve em vez de descobri-la por uma recusa.
+  const descricaoAparada = uploadDesc.trim()
+  const descricaoCurta   = descricaoAparada.length < DESCRIPTION_MIN_LENGTH
+  const descricaoLonga   = descricaoAparada.length > DESCRIPTION_MAX_LENGTH
+  const descricaoValida  = !descricaoCurta && !descricaoLonga
+  const tituloValido     = uploadTitle.trim().length > 0
 
   if (!orgId) return null
 
@@ -148,13 +162,21 @@ export function OrganizationDetailPage() {
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
     if (!uploadFile) return
+    // Mesma barreira da tela de envio direto: o formulário não deixa sair um
+    // envio que o servidor já recusaria.
+    if (!tituloValido || !descricaoValida) return
     setUploadError('')
     setUploadSuccess('')
     try {
-      const mi = await uploadMutation.mutateAsync({ file: uploadFile, title: uploadTitle || undefined })
+      const mi = await uploadMutation.mutateAsync({
+        file:        uploadFile,
+        title:       uploadTitle.trim(),
+        description: descricaoAparada,
+      })
       setUploadSuccess(`"${mi.title}" enviado para revisão.`)
       setUploadFile(null)
       setUploadTitle('')
+      setUploadDesc('')
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (e) {
       setUploadError(getApiError(e))
@@ -388,19 +410,55 @@ export function OrganizationDetailPage() {
                       </p>
                     )}
                   </div>
-                  <input
-                    type="text"
-                    value={uploadTitle}
-                    onChange={(e) => setUploadTitle(e.target.value)}
-                    placeholder="Título (opcional — padrão: nome do arquivo)"
-                    maxLength={200}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm
-                               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                  <div className="space-y-1">
+                    <label htmlFor="org-mi-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Título
+                      <span className="ml-1 text-xs text-red-500 font-normal">*</span>
+                    </label>
+                    <input
+                      id="org-mi-title"
+                      type="text"
+                      value={uploadTitle}
+                      onChange={(e) => setUploadTitle(e.target.value)}
+                      placeholder="Nome do material instrucional"
+                      maxLength={TITLE_MAX_LENGTH}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm
+                                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                      Obrigatório, até {TITLE_MAX_LENGTH} caracteres.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label htmlFor="org-mi-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Descrição
+                      <span className="ml-1 text-xs text-red-500 font-normal">*</span>
+                    </label>
+                    <textarea
+                      id="org-mi-description"
+                      value={uploadDesc}
+                      onChange={(e) => setUploadDesc(e.target.value)}
+                      placeholder="Descreva o conteúdo do material, a proposta pedagógica e a quem se destina."
+                      rows={4}
+                      maxLength={DESCRIPTION_MAX_LENGTH}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm
+                                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <p className={`text-xs ${descricaoValida ? 'text-gray-400 dark:text-gray-500' : 'text-amber-600 dark:text-amber-400'}`}>
+                      {descricaoCurta
+                        ? `Faltam ${DESCRIPTION_MIN_LENGTH - descricaoAparada.length} caracteres para o mínimo de ${DESCRIPTION_MIN_LENGTH}.`
+                        : descricaoLonga
+                          ? `Excedeu em ${descricaoAparada.length - DESCRIPTION_MAX_LENGTH} caracteres o máximo de ${DESCRIPTION_MAX_LENGTH}.`
+                          : `${descricaoAparada.length} de ${DESCRIPTION_MAX_LENGTH} caracteres.`}
+                    </p>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={!uploadFile || uploadMutation.isPending}
+                    disabled={!uploadFile || uploadMutation.isPending || !tituloValido || !descricaoValida}
                     className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <FileUp size={14} />

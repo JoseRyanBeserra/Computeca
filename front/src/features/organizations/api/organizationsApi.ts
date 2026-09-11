@@ -158,8 +158,11 @@ export interface OrgMaterialDTO {
 }
 
 export interface UploadOrgMaterialPayload {
-  file:   File
-  title?: string
+  file:  File
+  /** Obrigatório desde que o servidor deixou de adivinhá-lo pelo nome do arquivo. */
+  title: string
+  /** Obrigatória, 50 a 2000 caracteres — a mesma regra da rota direta. */
+  description: string
 }
 
 export async function listOrgMaterialsRequest(orgId: string): Promise<OrgMaterialDTO[]> {
@@ -173,7 +176,10 @@ export async function uploadOrgMaterialRequest(
 ): Promise<OrgMaterialDTO> {
   const formData = new FormData()
   formData.append('file', payload.file)
-  if (payload.title?.trim()) formData.append('title', payload.title.trim())
+  // Ambos seguem SEMPRE. Enviá-los condicionalmente era o defeito: o servidor
+  // exige os dois, e o campo omitido voltava como 422 em todo envio por projeto.
+  formData.append('title', payload.title.trim())
+  formData.append('description', payload.description.trim())
   const { data } = await api.post<OrgMaterialDTO>(
     `/organizations/${orgId}/mis`,
     formData,

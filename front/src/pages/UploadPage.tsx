@@ -14,9 +14,11 @@ import { AppShell } from '../components/AppShell'
 import { BnccHabilidadePicker } from '../components/BnccHabilidadePicker'
 import { canUploadMaterials } from '../lib/permissions'
 
-/** Espelham os limites validados no servidor — ver materialPdfUploadSchema.ts. */
-const DESCRIPTION_MIN_LENGTH = 50
-const DESCRIPTION_MAX_LENGTH = 2000
+import {
+  DESCRIPTION_MIN_LENGTH,
+  DESCRIPTION_MAX_LENGTH,
+  TITLE_MAX_LENGTH,
+} from '../features/materials/constants'
 import { useUploadMaterial } from '../features/materials/hooks/useUploadMaterial'
 import { useMyOrganizations } from '../features/organizations/hooks/useMyOrganizations'
 import { getApiErrorCode, getApiErrorMessage } from '../lib/apiError'
@@ -346,7 +348,7 @@ export function UploadPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Nome do material instrucional"
-                    maxLength={255}
+                    maxLength={TITLE_MAX_LENGTH}
                     disabled={isUploading || !canUpload}
                     className="w-full rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm
                                text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500
@@ -356,7 +358,7 @@ export function UploadPage() {
                                transition-colors"
                   />
                   <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Obrigatório, até 255 caracteres.
+                    Obrigatório, até {TITLE_MAX_LENGTH} caracteres.
                   </p>
                 </div>
 

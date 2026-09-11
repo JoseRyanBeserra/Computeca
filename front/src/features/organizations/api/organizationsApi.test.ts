@@ -110,10 +110,24 @@ describe('organizationsApi', () => {
   it('uploadOrgMaterialRequest envia FormData para a rota da org', async () => {
     mockApi.post.mockResolvedValue({ data: { id: 'm1' } })
     const file = new File(['x'], 'a.pdf')
-    await uploadOrgMaterialRequest('o1', { file, title: ' Aula ' })
+    await uploadOrgMaterialRequest('o1', { file, title: ' Aula ', description: '  ' + 'd'.repeat(60) + '  ' })
     const [url, formData, config] = mockApi.post.mock.calls[0]
     expect(url).toBe('/organizations/o1/mis')
     expect((formData as FormData).get('title')).toBe('Aula')
+    expect((formData as FormData).get('description')).toBe('d'.repeat(60))
     expect(config).toMatchObject({ headers: { 'Content-Type': 'multipart/form-data' } })
+  })
+
+  // Regressão: a descrição passou a ser obrigatória no servidor e esta função
+  // continuou enviando apenas arquivo e título, o que fazia TODO envio por
+  // projeto voltar 422. O campo precisa seguir sempre, nunca condicionalmente.
+  it('uploadOrgMaterialRequest sempre envia title e description', async () => {
+    mockApi.post.mockResolvedValue({ data: { id: 'm1' } })
+    const file = new File(['x'], 'a.pdf')
+    await uploadOrgMaterialRequest('o1', { file, title: 'T', description: 'x'.repeat(50) })
+    const formData = mockApi.post.mock.calls[0][1] as FormData
+    expect(formData.has('title')).toBe(true)
+    expect(formData.has('description')).toBe(true)
+    expect(formData.get('file')).toBe(file)
   })
 })
