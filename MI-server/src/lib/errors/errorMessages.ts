@@ -38,6 +38,9 @@ export type ErrorMessageKey =
   // ── Chat / GuardRail ──────────────────────────────────────────────────────
   | 'CHAT_PROMPT_INJECTION'
   | 'CHAT_CONTENT_FLAGGED'
+  // ── Disponibilidade da IA ─────────────────────────────────────────────────
+  | 'AI_DISABLED'
+  | 'AI_NOT_MANAGEABLE'
   // ── Genéricos ─────────────────────────────────────────────────────────────
   | 'BAD_REQUEST'
   | 'INTERNAL_ERROR'
@@ -75,6 +78,8 @@ export const errorMessages: Record<Language, Record<ErrorMessageKey, string>> = 
     INVITE_ONLY_INSTITUTIONAL: 'Apenas usuários com e-mail @dcx.ufpb.br podem receber convites.',
     CHAT_PROMPT_INJECTION:    'Sua mensagem contém padrões não permitidos. Faça perguntas sobre o conteúdo do documento.',
     CHAT_CONTENT_FLAGGED:     'Sua mensagem foi bloqueada por violar as políticas de uso da plataforma.',
+    AI_DISABLED:              'As funcionalidades de IA estão desativadas nesta instalação.',
+    AI_NOT_MANAGEABLE:        'Esta instalação não possui suporte a IA habilitado.',
     BAD_REQUEST:              'Requisição inválida.',
     INTERNAL_ERROR:           'Erro interno do servidor.',
     MISSING_ID:               'O identificador é obrigatório.',
@@ -111,6 +116,8 @@ export const errorMessages: Record<Language, Record<ErrorMessageKey, string>> = 
     INVITE_ONLY_INSTITUTIONAL: 'Only users with @dcx.ufpb.br email can receive invites.',
     CHAT_PROMPT_INJECTION:    'Your message contains disallowed patterns. Please ask questions about the document content.',
     CHAT_CONTENT_FLAGGED:     'Your message was blocked for violating platform usage policies.',
+    AI_DISABLED:              'AI features are disabled in this installation.',
+    AI_NOT_MANAGEABLE:        'This installation does not have AI support enabled.',
     BAD_REQUEST:              'Bad request.',
     INTERNAL_ERROR:           'Internal server error.',
     MISSING_ID:               'The identifier is required.',
@@ -147,6 +154,8 @@ export const errorMessages: Record<Language, Record<ErrorMessageKey, string>> = 
     INVITE_ONLY_INSTITUTIONAL: 'Solo usuarios con correo @dcx.ufpb.br pueden recibir invitaciones.',
     CHAT_PROMPT_INJECTION:    'Tu mensaje contiene patrones no permitidos. Haz preguntas sobre el contenido del documento.',
     CHAT_CONTENT_FLAGGED:     'Tu mensaje fue bloqueado por violar las políticas de uso de la plataforma.',
+    AI_DISABLED:              'Las funcionalidades de IA están desactivadas en esta instalación.',
+    AI_NOT_MANAGEABLE:        'Esta instalación no tiene soporte de IA habilitado.',
     BAD_REQUEST:              'Solicitud no válida.',
     INTERNAL_ERROR:           'Error interno del servidor.',
     MISSING_ID:               'El identificador es obligatorio.',

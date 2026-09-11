@@ -4,7 +4,7 @@ import { materialPdfChatSchema } from '../../../../schemas/resources/materials/p
 import { findMaterialForChat } from '../../../../repositories/resources/materials/pdf/materialPdfChatRepository'
 import { createInspectionLog } from '../../../../repositories/inspectionLog/inspectionLogRepository'
 import { getQdrant, QDRANT_COLLECTION } from '../../../../lib/qdrant'
-import { openai } from '../../../../lib/openai'
+import { getOpenAiClient } from '../../../../lib/openai'
 import { ERRORS, buildError } from '../../../../lib/errors/errors'
 import { GeneralErrorResponse } from '../../../../errors/GeneralErrorResponse'
 import { StatusCode } from '../../../../utils/statusCode'
@@ -91,7 +91,7 @@ function detectPromptInjection(question: string): string | null {
 
 async function moderateContent(question: string): Promise<string[]> {
   return withSpan('mi.chat.guardrail_moderacao', { 'busca.pergunta_tamanho': question.length }, async (span) => {
-    const response = await openai.moderations.create({ input: question })
+    const response = await getOpenAiClient().moderations.create({ input: question })
     const result   = response.results[0]
 
     if (!result.flagged) {
@@ -130,7 +130,7 @@ async function embedQuestion(question: string): Promise<EmbedResult> {
     'mi.chat.embedding_pergunta',
     { 'ia.modelo': EMBED_MODEL, 'busca.pergunta_tamanho': question.length },
     async (span) => {
-      const response = await openai.embeddings.create({
+      const response = await getOpenAiClient().embeddings.create({
         model: EMBED_MODEL,
         input: question,
       })
@@ -330,7 +330,7 @@ async function runChat(
     'mi.chat.geracao_resposta',
     { 'ia.modelo': CHAT_MODEL, 'busca.trechos_usados': chunks.length, 'ia.max_tokens': MAX_TOKENS },
     async (span) => {
-      const result = await openai.chat.completions.create({
+      const result = await getOpenAiClient().chat.completions.create({
         model:      CHAT_MODEL,
         max_tokens: MAX_TOKENS,
         messages: [

@@ -8,7 +8,7 @@ import { materialPdfReviewSchema } from '../../../../schemas/resources/materials
 import { ERRORS, buildError } from '../../../../lib/errors/errors'
 import { GeneralErrorResponse } from '../../../../errors/GeneralErrorResponse'
 import { StatusCode } from '../../../../utils/statusCode'
-import { vectorizeQueue } from '../../../../lib/queue'
+import { getVectorizeQueue } from '../../../../lib/queue'
 import { PROFESSOR, ADMIN } from '../../../../constants/roles'
 import { logger } from '../../../../lib/logger'
 
@@ -30,7 +30,19 @@ export async function materialPdfReviewService(input: unknown): Promise<IUploade
   const updated = await updateMaterialStatus(materialId, decision)
 
   if (decision === 'APPROVED') {
-    await vectorizeQueue.add('vectorize', { materialId, storageKey: material.storageKey })
+    // Com as funcionalidades de IA desativadas nenhum job é criado: a aprovação
+    // conclui e o material fica disponível com `vectorStatus` em PENDING. O
+    // acervo acumulado pode ser reprocessado depois por `npm run ai:backfill`.
+    const queue = getVectorizeQueue()
+
+    if (queue) {
+      await queue.add('vectorize', { materialId, storageKey: material.storageKey })
+    } else {
+      logger.info(
+        { materialId },
+        'materialPdfReviewService: IA desativada — vetorização não agendada',
+      )
+    }
   }
 
   await createAuditLog({

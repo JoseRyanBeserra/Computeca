@@ -6,6 +6,8 @@ import { materialPdfPresignedUrlSchema } from '../../../../schemas/resources/mat
 import { ERRORS, buildError } from '../../../../lib/errors/errors'
 import { GeneralErrorResponse } from '../../../../errors/GeneralErrorResponse'
 import { StatusCode } from '../../../../utils/statusCode'
+import { omitAiFields } from '../../../../utils/omitAiFields'
+import { isAiEnabled } from '../../../../constants/features'
 import { logger } from '../../../../lib/logger'
 
 /**
@@ -30,5 +32,5 @@ export async function materialPdfDetailService(
   accessPolicy?.(material)
 
   logger.info('OUT - materialPdfDetailService')
-  return material
+  return omitAiFields(material, await isAiEnabled())
 }

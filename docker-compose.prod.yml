@@ -6,11 +6,10 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:8115:8080"
-    depends_on:
-      redis:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
+    # Sem depends_on para redis/qdrant: eles vivem sob o profile "ai" e um
+    # depends_on apontando para serviço fora do profile ativo IMPEDE a stack de
+    # subir. A tolerância à ausência vem do acesso preguiçoso no código — a fila
+    # e o cliente de busca vetorial só são criados quando a IA está habilitada.
     environment:
       NODE_ENV: production
 
@@ -73,6 +72,7 @@ services:
   # Gerenciado pelo docker-compose — não precisa ser configurado no portal.
   # Dados persistidos no volume redis_data.
   redis:
+    profiles: ["ai"]
     image: redis:7-alpine
     restart: unless-stopped
     expose:
@@ -90,6 +90,7 @@ services:
   # Gerenciado pelo docker-compose — não precisa ser configurado no portal.
   # Dados persistidos no volume qdrant_data.
   qdrant:
+    profiles: ["ai"]
     image: qdrant/qdrant:v1.13.6
     restart: unless-stopped
     expose:

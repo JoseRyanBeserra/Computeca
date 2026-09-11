@@ -14,6 +14,7 @@ import { usePublicMaterials } from '../features/materials/hooks/usePublicMateria
 import { useHabilidades } from '../features/materials/hooks/useHabilidades'
 import { getApiErrorMessage } from '../lib/apiError'
 import { canUseAiChat } from '../lib/permissions'
+import { useFeatures } from '../features/config/hooks/useFeatures'
 import type { PendingMaterial } from '../features/materials/api/materialsApi'
 
 // ── Ordenação (tabs estilo "MEC Recomenda / Recentes / …") ──────────────────────
@@ -41,6 +42,7 @@ function sortMaterials(list: PendingMaterial[], key: SortKey): PendingMaterial[]
 function PublicResourceCard({ material }: { material: PendingMaterial }) {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { ai } = useFeatures()
 
   function handleChat() {
     navigate(`/materials/${material.id}/chat`, { state: { material } })
@@ -58,7 +60,7 @@ function PublicResourceCard({ material }: { material: PendingMaterial }) {
       habilidades={material.habilidadesBncc}
       organizationName={organizationName}
       detailTo={`/materials/${material.id}`}
-      onChat={canUseAiChat(user) ? handleChat : undefined}
+      onChat={ai.enabled && canUseAiChat(user) ? handleChat : undefined}
     />
   )
 }

@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { FeaturesProvider } from './context/FeaturesContext'
 import { Router } from './app/Router'
 import './index.css'
 
@@ -16,7 +17,9 @@ createRoot(root).render(
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Router />
+          <FeaturesProvider>
+            <Router />
+          </FeaturesProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

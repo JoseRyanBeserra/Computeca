@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { canUploadMaterials } from '../lib/permissions'
+import { useFeatures } from '../features/config/hooks/useFeatures'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { HomePage } from '../pages/HomePage'
@@ -22,6 +23,18 @@ import { VerifyEmailSentPage } from '../pages/VerifyEmailSentPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 // ── Guards ─────────────────────────────────────────────────────────────────────
+/**
+ * Redireciona para o acervo quando as funcionalidades de IA estão desativadas.
+ *
+ * Quem guardou o endereço da tela de chat não deve encontrar erro técnico nem
+ * tela quebrada — apenas uma tela válida do acervo.
+ */
+function AiRoute({ children }: { children: React.ReactNode }) {
+  const { ai, loading } = useFeatures()
+  if (loading) return null
+  return ai.enabled ? <>{children}</> : <Navigate to="/materials" replace />
+}
+
 
 /** Redireciona para "/" se o usuário já estiver autenticado */
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -112,7 +125,9 @@ export function Router() {
           path="/materials/:materialId/chat"
           element={
             <PrivateRoute>
-              <MaterialChatPage />
+              <AiRoute>
+                <MaterialChatPage />
+              </AiRoute>
             </PrivateRoute>
           }
         />

@@ -75,7 +75,7 @@ export interface PendingMaterial {
   mimeType: string
   sizeBytes: number
   status: MIStatus
-  vectorStatus: VectorStatus
+  vectorStatus?: VectorStatus // omitido pela API quando a IA esta desativada
   habilidadesBncc: string[]
   uploadedById: string
   uploadedBy: { name: string; email: string }

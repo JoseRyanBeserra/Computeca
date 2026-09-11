@@ -372,8 +372,8 @@ npm install
 cp .env.example .env
 # Edite o .env com seus valores
 
-# Subir PostgreSQL e Redis via Docker
-docker compose up db redis -d
+# Subir a infraestrutura via Docker (PostgreSQL, MinIO e observabilidade)
+docker compose up -d
 
 # Executar migrations e seed
 npm run db:migrate
@@ -382,6 +382,41 @@ npm run db:seed
 # Iniciar servidor em modo desenvolvimento
 npm run dev
 ```
+
+### Funcionalidades de IA — interruptor de dois níveis
+
+O projeto sobe **sem IA** por padrão. Chat com PDF, resumo automático e
+vetorização ficam desativados, e os serviços que existem só para servi-los —
+Redis (fila) e Qdrant (busca vetorial) — não são iniciados.
+
+| Nível | Onde | Efeito | Exige reinício? |
+| --- | --- | --- | --- |
+| Ambiente (mestre) | `AI_FEATURES_ENABLED` no `.env` | Determina se a instalação tem IA. Desligado, nenhuma conexão é aberta, as rotas de IA recusam com `503` e o front não renderiza nada de IA | Sim |
+| Administração | Painel administrativo | Liga e desliga a disponibilidade com efeito imediato, **subordinado** ao nível mestre | Não |
+
+A disponibilidade efetiva é a conjunção dos dois. O nível de banco nunca
+sobrepõe o de ambiente: com o mestre desligado, o controle do painel aparece
+bloqueado e nenhuma alteração ali produz efeito.
+
+**Para usar a IA:**
+
+```bash
+# 1. Subir também os serviços de apoio
+docker compose --profile ai up -d
+
+# 2. No .env do MI-server
+AI_FEATURES_ENABLED=true
+OPENAI_API_KEY=sk-...        # obrigatória apenas quando a IA está ligada
+
+# 3. Reiniciar a aplicação e, se houver acervo acumulado, reprocessá-lo
+npm run ai:backfill
+```
+
+`OPENAI_API_KEY` só é exigida quando `AI_FEATURES_ENABLED=true` — com a IA
+desligada a aplicação sobe normalmente sem ela.
+
+O código das funcionalidades de IA permanece integralmente no repositório;
+nada foi removido.
 
 A API estará disponível em `http://localhost:3333`.
 

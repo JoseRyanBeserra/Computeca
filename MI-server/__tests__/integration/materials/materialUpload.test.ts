@@ -125,4 +125,40 @@ describe('POST /mis — Upload com habilidades BNCC', () => {
 
     expect(res.statusCode).toBe(403)
   })
+
+  // ── Limite de campos do multipart ────────────────────────────────────────────
+  // O formulário do front envia uma habilidade por campo repetido `habilidadesBncc`
+  // (sem colchetes). Com o teto de campos baixo demais, o Busboy abortava o upload
+  // com FST_FIELDS_LIMIT (413) assim que o total de campos passava do limite —
+  // o que acontecia já com 5 habilidades selecionadas, contando o título.
+
+  it('deve aceitar 5 habilidades no formato enviado pelo front (regressão FST_FIELDS_LIMIT)', async () => {
+    const app = await getTestApp()
+    const owner = await createUserAndLogin('owner@test.com', 'INSTITUTIONALIZED')
+
+    const habilidades = ['EF15LP01', 'EF15LP02', 'EF67LP03', 'EF67LP04', 'EM13CO01']
+
+    const res = await uploadMaterial(app, owner.accessToken, (form) => {
+      for (const h of habilidades) form.append('habilidadesBncc', h)
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.json().habilidadesBncc.sort()).toEqual([...habilidades].sort())
+  })
+
+  it('deve aceitar uma seleção grande de habilidades sem estourar o limite de campos', async () => {
+    const app = await getTestApp()
+    const owner = await createUserAndLogin('owner@test.com', 'INSTITUTIONALIZED')
+
+    // 60 habilidades distintas — bem acima do que o formulário costuma enviar,
+    // e ainda dentro do teto configurado no registro do multipart.
+    const habilidades = Array.from({ length: 60 }, (_, i) => `EF15CO${String(i + 1).padStart(2, '0')}`)
+
+    const res = await uploadMaterial(app, owner.accessToken, (form) => {
+      for (const h of habilidades) form.append('habilidadesBncc', h)
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.json().habilidadesBncc).toHaveLength(60)
+  })
 })

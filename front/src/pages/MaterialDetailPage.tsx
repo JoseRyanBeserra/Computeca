@@ -9,6 +9,7 @@ import { AppShell } from '../components/AppShell'
 import { HabilidadesBncc } from '../components/HabilidadesBncc'
 import { useAuth } from '../context/AuthContext'
 import { canUseAiChat } from '../lib/permissions'
+import { useFeatures } from '../features/config/hooks/useFeatures'
 import { useMaterial } from '../features/materials/hooks/useMaterial'
 import { useMaterialSummary } from '../features/materials/hooks/useMaterialSummary'
 import {
@@ -71,7 +72,7 @@ function isAiReady(material: PendingMaterial): boolean {
  * está na fila/execução (Redis) ou falhou. Enquanto não estiver `DONE`, o chat e
  * o resumo não são disponibilizados.
  */
-function AiStatusNotice({ vectorStatus }: { vectorStatus: VectorStatus }) {
+function AiStatusNotice({ vectorStatus }: { vectorStatus?: VectorStatus }) {
   const failed = vectorStatus === 'FAILED'
 
   const classes = failed
@@ -151,6 +152,13 @@ function SummaryCard({ materialId }: { materialId: string }) {
  * (vetorizado) ou um aviso de processamento/falha caso contrário.
  */
 function AiSection({ material }: { material: PendingMaterial }) {
+  const { ai } = useFeatures()
+
+  // Com as funcionalidades de IA desativadas nada de IA aparece — nem o resumo,
+  // nem o aviso de processamento. Vale inclusive para material que ja possui
+  // resumo gravado: o usuario nao deve perceber tratamento diferente entre
+  // materiais.
+  if (!ai.enabled) return null
   if (material.status !== 'APPROVED') return null
   if (!isAiReady(material)) return <AiStatusNotice vectorStatus={material.vectorStatus} />
   return <SummaryCard materialId={material.id} />
@@ -160,6 +168,7 @@ function AiSection({ material }: { material: PendingMaterial }) {
 
 function DetailContent({ material }: { material: PendingMaterial }) {
   const { user } = useAuth()
+  const { ai } = useFeatures()
   const navigate = useNavigate()
   const [isOpening, setIsOpening] = useState(false)
   const [viewError, setViewError] = useState<string | null>(null)
@@ -275,7 +284,7 @@ function DetailContent({ material }: { material: PendingMaterial }) {
         </button>
 
         {/* Conversar com IA — usuários institucionais, material aprovado e vetorizado */}
-        {canUseAiChat(user) && material.status === 'APPROVED' && isAiReady(material) && (
+        {ai.enabled && canUseAiChat(user) && material.status === 'APPROVED' && isAiReady(material) && (
           <button
             onClick={() => navigate(`/materials/${material.id}/chat`, { state: { material } })}
             className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-800
@@ -289,7 +298,7 @@ function DetailContent({ material }: { material: PendingMaterial }) {
         )}
 
         {/* Material aprovado mas ainda não vetorizado — chat indisponível (motivo no aviso acima) */}
-        {canUseAiChat(user) && material.status === 'APPROVED' && !isAiReady(material) && (
+        {ai.enabled && canUseAiChat(user) && material.status === 'APPROVED' && !isAiReady(material) && (
           <button
             type="button"
             disabled

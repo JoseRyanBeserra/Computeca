@@ -92,4 +92,63 @@ describe('AdminDashboardPage', () => {
     // A navegação não quebra a renderização (rota simples de teste)
     expect(seeAllButtons.length).toBeGreaterThanOrEqual(2)
   })
+
+  describe('disponibilidade das funcionalidades de IA', () => {
+    it('instalação sem suporte a IA: controle bloqueado e explicado', async () => {
+      renderWithProviders(<AdminDashboardPage />, {
+        features: { ai: { enabled: false, manageable: false } },
+      })
+
+      expect(await screen.findByText(/Indisponível nesta instalação/i)).toBeInTheDocument()
+      expect(screen.getByText(/depende de configuração de ambiente/i)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Ativar IA|Desativar IA/i })).not.toBeInTheDocument()
+    })
+
+    it('instalação com suporte e IA ligada: oferece desativar', async () => {
+      renderWithProviders(<AdminDashboardPage />, {
+        features: { ai: { enabled: true, manageable: true } },
+      })
+
+      expect(await screen.findByRole('button', { name: /Desativar IA/i })).toBeInTheDocument()
+      expect(screen.queryByText(/Indisponível nesta instalação/i)).not.toBeInTheDocument()
+    })
+
+    it('instalação com suporte e IA desligada pelo painel: oferece ativar', async () => {
+      renderWithProviders(<AdminDashboardPage />, {
+        features: { ai: { enabled: false, manageable: true } },
+      })
+
+      expect(await screen.findByRole('button', { name: /Ativar IA/i })).toBeInTheDocument()
+    })
+
+    it('alternar chama a API e recarrega a disponibilidade', async () => {
+      const user = userEvent.setup()
+      const refresh = vi.fn().mockResolvedValue(undefined)
+      mockApi.patch.mockResolvedValue({ data: { ai: { enabled: false, manageable: true } } })
+
+      renderWithProviders(<AdminDashboardPage />, {
+        features: { ai: { enabled: true, manageable: true }, refresh },
+      })
+
+      await user.click(await screen.findByRole('button', { name: /Desativar IA/i }))
+
+      await waitFor(() => {
+        expect(mockApi.patch).toHaveBeenCalledWith('/config/features/ai', { enabled: false })
+      })
+      expect(refresh).toHaveBeenCalled()
+    })
+
+    it('falha na alteração mostra mensagem e não derruba a tela', async () => {
+      const user = userEvent.setup()
+      mockApi.patch.mockRejectedValue(new Error('rede'))
+
+      renderWithProviders(<AdminDashboardPage />, {
+        features: { ai: { enabled: true, manageable: true } },
+      })
+
+      await user.click(await screen.findByRole('button', { name: /Desativar IA/i }))
+
+      expect(await screen.findByText(/Não foi possível alterar a disponibilidade/i)).toBeInTheDocument()
+    })
+  })
 })

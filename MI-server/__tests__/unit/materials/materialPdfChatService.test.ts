@@ -14,7 +14,9 @@ const { openaiMock, qdrantSearch } = vi.hoisted(() => ({
   qdrantSearch: vi.fn(),
 }))
 
-vi.mock('../../../src/lib/openai', () => ({ openai: openaiMock }))
+// O cliente da OpenAI passou a ser criado sob demanda (getOpenAiClient), para
+// que o modulo nao exija a chave em instalacoes sem IA.
+vi.mock('../../../src/lib/openai', () => ({ getOpenAiClient: () => openaiMock }))
 vi.mock('../../../src/lib/qdrant', () => ({
   getQdrant: vi.fn(async () => ({ search: qdrantSearch })),
   QDRANT_COLLECTION: 'test-collection',

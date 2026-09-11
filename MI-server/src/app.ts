@@ -19,6 +19,7 @@ import { usersRoutes } from './routes/users/usersRoutes'
 import { materialPdfUploadRoutes } from './routes/resources/materials/pdf/materialPdfUploadRoutes'
 import { logsRoutes } from './routes/logs/logsRoutes'
 import { organizationsRoutes } from './routes/organizations/organizationsRoutes'
+import { configRoutes } from './routes/config/configRoutes'
 import { nomearSpanHttp } from './lib/tracing'
 
 export function buildApp() {
@@ -79,7 +80,11 @@ export function buildApp() {
     limits: {
       files:    1,                                             // máx. 1 arquivo por request
       fileSize: env.MI_MAX_FILE_SIZE_MB * 1024 * 1024,        // limite em bytes
-      fields:   5,                                             // máx. 5 campos de texto
+      // O formulário de upload envia uma habilidade BNCC por campo repetido
+      // (o back agrega as repetições em array). O catálogo tem 110 habilidades,
+      // então o teto precisa cobrir todas elas + o título + margem. Com um teto
+      // menor, selecionar muitas habilidades aborta o upload com FST_FIELDS_LIMIT.
+      fields:   120,
     },
   })
 
@@ -140,6 +145,7 @@ export function buildApp() {
   app.register(materialPdfUploadRoutes, { prefix: '/mis' })
   app.register(logsRoutes, { prefix: '/logs' })
   app.register(organizationsRoutes, { prefix: '/organizations' })
+  app.register(configRoutes, { prefix: '/config' })
 
   // ── Handler global de erros ──────────────────────────────────────────────────
   app.setErrorHandler(errorHandler)

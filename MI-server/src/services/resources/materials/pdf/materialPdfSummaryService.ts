@@ -10,7 +10,7 @@ import {
 } from '../../../../repositories/resources/materials/pdf/materialPdfSummaryRepository'
 import { createInspectionLog } from '../../../../repositories/inspectionLog/inspectionLogRepository'
 import { getQdrant, QDRANT_COLLECTION } from '../../../../lib/qdrant'
-import { openai } from '../../../../lib/openai'
+import { getOpenAiClient } from '../../../../lib/openai'
 import { ERRORS, buildError } from '../../../../lib/errors/errors'
 import { GeneralErrorResponse } from '../../../../errors/GeneralErrorResponse'
 import { StatusCode } from '../../../../utils/statusCode'
@@ -117,7 +117,7 @@ async function generateSummary(materialId: string, documentText: string): Promis
     'mi.resumo.geracao',
     { 'ia.modelo': CHAT_MODEL, 'ia.max_tokens': MAX_TOKENS, 'mi.caracteres_entrada': documentText.length },
     async (span) => {
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAiClient().chat.completions.create({
         model:      CHAT_MODEL,
         max_tokens: MAX_TOKENS,
         messages: [

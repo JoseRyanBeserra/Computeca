@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '../context/AuthContext'
 import { ThemeProvider } from '../context/ThemeContext'
+import { FeaturesContext, type FeaturesContextValue } from '../context/FeaturesContext'
 
 vi.mock('../lib/api', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() },
@@ -16,13 +17,20 @@ import { makeUser } from '../test/utils'
 
 const mockApi = vi.mocked(api)
 
-function renderAt(path: string) {
+// Padrão dos testes de guard: IA ligada, que é o comportamento histórico.
+// Os casos de IA desativada passam o valor explicitamente.
+const FEATURES_ON: FeaturesContextValue = { ai: { enabled: true, manageable: true }, loading: false }
+const FEATURES_OFF: FeaturesContextValue = { ai: { enabled: false, manageable: false }, loading: false }
+
+function renderAt(path: string, features: FeaturesContextValue = FEATURES_ON) {
   window.history.pushState({}, '', path)
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <FeaturesContext.Provider value={features}>{children}</FeaturesContext.Provider>
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   )
@@ -94,5 +102,33 @@ describe('Router (guards)', () => {
     mockApi.get.mockResolvedValue({ data: [] })
     renderAt('/upload')
     expect(await screen.findByText('Upload de Material')).toBeInTheDocument()
+  })
+
+  describe('guard de IA na rota de chat', () => {
+    it('redireciona para o acervo quando a IA está desativada', async () => {
+      localStorage.setItem('accessToken', 't')
+      localStorage.setItem('authUser', JSON.stringify(makeUser({ role: 'PROFESSOR' })))
+
+      renderAt('/materials/m1/chat', FEATURES_OFF)
+
+      // Chega a uma tela válida do acervo, sem erro técnico nem tela quebrada.
+      expect(await screen.findByRole('heading', { name: 'Meus Materiais' })).toBeInTheDocument()
+    })
+
+    it('mantém o acesso ao chat quando a IA está ativada', async () => {
+      localStorage.setItem('accessToken', 't')
+      localStorage.setItem('authUser', JSON.stringify(makeUser({ role: 'PROFESSOR' })))
+
+      renderAt('/materials/m1/chat', FEATURES_ON)
+
+      // Não foi desviado para o acervo.
+      expect(screen.queryByRole('heading', { name: 'Meus Materiais' })).not.toBeInTheDocument()
+    })
+
+    it('anônimo continua indo para /login, não para o acervo', async () => {
+      renderAt('/materials/m1/chat', FEATURES_OFF)
+
+      expect(await screen.findByText(/Bem-vindo de volta/i)).toBeInTheDocument()
+    })
   })
 })
