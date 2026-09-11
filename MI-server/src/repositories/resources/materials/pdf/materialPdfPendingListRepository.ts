@@ -6,6 +6,7 @@ import type { IPendingMaterial } from '../../../../@types/resources/materials/pd
 const PENDING_SELECT = {
   id:               true,
   title:            true,
+  description:      true,
   originalFileName: true,
   storageKey:       true,
   mimeType:         true,

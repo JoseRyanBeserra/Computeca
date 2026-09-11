@@ -218,3 +218,34 @@ Ambos em `src/constants/features.ts`. O resolvedor usa cache de processo:
   verificação em `lib/aiReadiness.ts`.
 
 Referência completa: `specs/001-disable-ai-features/`.
+
+---
+
+## Cadastro de material — campos obrigatórios
+
+`POST /mis` e `POST /organizations/:orgId/mis` exigem:
+
+| Campo | Regra |
+| --- | --- |
+| `title` | 1 a 255 caracteres, após `trim`. O servidor **não** recorre mais ao nome do arquivo |
+| `description` | 50 a 2000 caracteres, após `trim`. Limites **inclusivos** |
+
+A regra vive em `schemas/resources/materials/pdf/materialPdfUploadSchema.ts` e é aplicada por
+`validateRequest` **no service** — não só no controller, para que chamada interna inválida também
+seja recusada. A recusa sai como `422` pelo `ErrorHandler` global, caminho padrão de erro de
+validação no projeto.
+
+### Ao mexer no formulário de cadastro
+
+- **Leia o multipart por `controllers/resources/materials/pdf/shared/parseMaterialMultipart.ts`**,
+  nunca com um laço próprio de `request.parts()`. Os dois controllers usam o mesmo módulo — é o que
+  impede os caminhos de divergirem nos campos exigidos.
+- **Campo novo entra no schema**, não em validação espalhada pelo controller.
+
+### Coluna `description`
+
+Nullable no banco, obrigatória na entrada. `null` significa **"cadastrado antes da exigência"**,
+não vazio — o schema recusa string vazia, então nenhum material novo chega a `''`. A tela de
+detalhes usa essa distinção para indicar ausência sem parecer erro.
+
+**Não existe fluxo de edição de metadados**: o valor gravado no cadastro é definitivo.

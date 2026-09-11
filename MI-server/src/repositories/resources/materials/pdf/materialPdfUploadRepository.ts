@@ -6,6 +6,7 @@ import type { IUploadedMI } from '../../../../@types/resources/materials/pdf'
 const MI_SELECT = {
   id:               true,
   title:            true,
+  description:      true,
   originalFileName: true,
   storageKey:       true,
   mimeType:         true,
@@ -19,6 +20,8 @@ const MI_SELECT = {
 
 interface CreateMaterialPdfInput {
   title:            string
+  /** Descrição do material — obrigatória no cadastro, validada no service */
+  description:      string
   originalFileName: string
   storageKey:       string
   mimeType:         string
@@ -32,6 +35,7 @@ export async function createMaterialPdf(input: CreateMaterialPdfInput): Promise<
   return prisma.materialInstrucional.create({
     data: {
       title:            input.title,
+      description:      input.description,
       originalFileName: input.originalFileName,
       storageKey:       input.storageKey,
       mimeType:         input.mimeType,

@@ -38,9 +38,15 @@ const USER_ID = 'bbbbbbbb-0000-4000-8000-000000000002'
 /** Buffer de PDF válido — começa com os magic bytes "%PDF". */
 const PDF_BUFFER = Buffer.from('%PDF-1.7 conteúdo de teste')
 
+/** Descrição válida (>= 50 caracteres) para os casos que não testam a descrição. */
+const DESCRICAO_VALIDA =
+  'Material instrucional de teste com conteudo suficiente para validacao.'
+
 function baseInput(overrides: Partial<UploadMIInput> = {}): UploadMIInput {
   return {
     title:            'Material de Teste',
+    // Desde a feature 003 a descrição é obrigatória e validada no service.
+    description:      DESCRICAO_VALIDA,
     buffer:           PDF_BUFFER,
     originalFileName: 'arquivo.pdf',
     mimeType:         'application/pdf',

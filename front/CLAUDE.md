@@ -46,3 +46,20 @@ No jsdom o `<object>` **nunca falha ao carregar** e seus filhos ficam sempre no 
 sempre pelos atributos (`data`, `type`), **nunca** pela presença do texto de fallback — ele está
 presente também no estado de sucesso, o que tornaria a asserção vazia. O fallback só é verificável
 manualmente, em navegador sem suporte a PDF embutido.
+
+## Cadastro de material
+
+Título e descrição são **obrigatórios**. Os limites do formulário espelham os do servidor:
+
+- Título: 1 a 255 caracteres
+- Descrição: 50 a 2000 caracteres
+
+O contador ao vivo existe para o usuário conhecer a regra **enquanto escreve**, não por uma recusa.
+A validação de verdade continua no servidor.
+
+Selecionar o arquivo pré-preenche o título com o nome dele — sugestão editável, distinta do
+servidor adivinhar (ele não faz mais isso). Em teste, lembre de limpar o campo antes de digitar.
+
+Na tela de detalhes, `description` em `null` significa material anterior à exigência: indique a
+ausência de forma discreta, nunca como erro. Use `whitespace-pre-line` para preservar parágrafos
+sem interpretar marcação.

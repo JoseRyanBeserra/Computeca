@@ -23,9 +23,16 @@ afterAll(async () => {
 /** Buffer de PDF válido — começa com os magic bytes "%PDF". */
 const PDF_BUFFER = Buffer.from('%PDF-1.7\n1 0 obj<<>>endobj\n%%EOF\n')
 
+/** Descrição válida para os casos que não estão testando a própria descrição. */
+const DESCRICAO_VALIDA =
+  'Material instrucional sobre pensamento computacional, com atividades práticas para o ensino fundamental.'
+
 /**
  * Faz upload via POST /mis montando um multipart/form-data real.
  * `appendFields` recebe o FormData para anexar os campos habilidadesBncc desejados.
+ *
+ * Título e descrição são enviados sempre: desde a feature 003 ambos são
+ * obrigatórios no servidor, e sem eles todo cadastro seria recusado com 422.
  */
 async function uploadMaterial(
   app: FastifyInstance,
@@ -35,6 +42,7 @@ async function uploadMaterial(
   const form = new FormData()
   form.append('file', PDF_BUFFER, { filename: 'material.pdf', contentType: 'application/pdf' })
   form.append('title', 'Material com Habilidades')
+  form.append('description', DESCRICAO_VALIDA)
   appendFields(form)
 
   return app.inject({

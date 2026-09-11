@@ -5,6 +5,7 @@ import type { IPendingMaterial, IUploadedMI } from '../../../../@types/resources
 const MI_SELECT = {
   id:               true,
   title:            true,
+  description:      true,
   originalFileName: true,
   storageKey:       true,
   mimeType:         true,

@@ -13,6 +13,8 @@ import { env } from '../../../../env'
 import { withSpan, withSpanSync } from '../../../../lib/tracing'
 import { logger } from '../../../../lib/logger'
 import type { UploadMIInput, IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import { materialPdfUploadSchema } from '../../../../schemas/resources/materials/pdf/materialPdfUploadSchema'
+import { validateRequest } from '../../../../utils/validateRequest'
 
 // ── Constantes de validação ────────────────────────────────────────────────────
 
@@ -44,8 +46,14 @@ const habilidadesBnccSchema = z
  *  6. Retorna o DTO do material criado
  */
 export async function materialPdfUploadService(input: UploadMIInput): Promise<IUploadedMI> {
-  const { title, buffer, originalFileName, mimeType, uploadedById, organizationIds = [] } = input
-  const habilidadesBncc = habilidadesBnccSchema.parse(input.habilidadesBncc)
+  // Validação na fronteira do service (Princípio I). O ZodError resultante é
+  // convertido em 422 pelo errorHandler global. Validar aqui — e não só no
+  // controller — é o que garante que uma chamada interna com entrada inválida
+  // também seja recusada.
+  const { title, description, habilidadesBncc, uploadedById, organizationIds } =
+    validateRequest(input, materialPdfUploadSchema)
+
+  const { buffer, originalFileName, mimeType } = input
 
   return withSpan(
     'mi.upload',
@@ -113,6 +121,7 @@ export async function materialPdfUploadService(input: UploadMIInput): Promise<IU
       const mi = await withSpan('mi.upload.persistir_metadados', { 'mi.titulo': title }, async () =>
         createMaterialPdf({
           title,
+          description,
           originalFileName,
           storageKey,
           mimeType,
