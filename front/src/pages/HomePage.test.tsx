@@ -9,7 +9,7 @@ vi.mock('../lib/api', () => ({
 
 import { api } from '../lib/api'
 import { HomePage } from './HomePage'
-import { renderWithProviders, setSession } from '../test/utils'
+import { renderWithProviders, setSession, makeUser } from '../test/utils'
 
 const mockApi = vi.mocked(api)
 
@@ -117,6 +117,24 @@ describe('HomePage', () => {
 
     await screen.findByText('Biologia Celular')
     expect(screen.getByRole('button', { name: /Conversar com IA/i })).toBeInTheDocument()
+  })
+
+  it('não mostra o botão de chat quando a IA está desativada na instalação', async () => {
+    setSession() // mesmo usuário institucional do caso acima
+    mockMaterials([material('m1', 'Biologia Celular', '2026-01-01T00:00:00Z')])
+    renderWithProviders(<HomePage />, { features: { ai: { enabled: false, manageable: false } } })
+
+    await screen.findByText('Biologia Celular')
+    expect(screen.queryByRole('button', { name: /Conversar com IA/i })).not.toBeInTheDocument()
+  })
+
+  it('não mostra o botão de chat para ADMIN quando a IA está desativada', async () => {
+    setSession(makeUser({ role: 'ADMIN', email: 'admin@dcx.ufpb.br' }))
+    mockMaterials([material('m1', 'Biologia Celular', '2026-01-01T00:00:00Z')])
+    renderWithProviders(<HomePage />, { features: { ai: { enabled: false, manageable: false } } })
+
+    await screen.findByText('Biologia Celular')
+    expect(screen.queryByRole('button', { name: /Conversar com IA/i })).not.toBeInTheDocument()
   })
 
   it('mostra paginação e avança de página', async () => {

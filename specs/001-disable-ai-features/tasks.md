@@ -70,9 +70,9 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 - [X] T018 [P] [US1] Teste de integração de `GET /config/features` em `MI-server/__tests__/integration/config/featureAvailability.test.ts`, cobrindo as três combinações válidas de `enabled`/`manageable`, o acesso **sem token** e o registro malformado, conforme `contracts/get-config-features.md`
 - [X] T019 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialAiFieldsOmitted.test.ts` provando que, com a IA desativada, `GET /mis/:id` e `GET /mis/all` **não** incluem `vectorStatus` no conteúdo retornado, e que com a IA ativada o campo volta a aparecer (FR-017)
-- [ ] T020 [P] [US1] Teste de `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com IA desativada, não há painel de resumo nem aviso de processamento — **inclusive para material com resumo já gravado** e com `vectorStatus` ausente na resposta
-- [ ] T021 [P] [US1] Teste de `front/src/pages/HomePage.test.tsx` confirmando ausência de ação de chat nos cards com IA desativada, para todos os perfis
-- [ ] T022 [P] [US1] Teste de `front/src/app/Router.test.tsx` confirmando que `/materials/:id/chat` redireciona para uma tela válida do acervo com IA desativada, sem mensagem de erro técnica
+- [X] T020 [P] [US1] Teste de `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com IA desativada, não há painel de resumo nem aviso de processamento — **inclusive para material com resumo já gravado** e com `vectorStatus` ausente na resposta
+- [X] T021 [P] [US1] Teste de `front/src/pages/HomePage.test.tsx` confirmando ausência de ação de chat nos cards com IA desativada, para todos os perfis
+- [X] T022 [P] [US1] Teste de `front/src/app/Router.test.tsx` confirmando que `/materials/:id/chat` redireciona para uma tela válida do acervo com IA desativada, sem mensagem de erro técnica
 
 ### Implementation for User Story 1
 
@@ -83,14 +83,14 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 - [X] T027 [US1] Registrar `configRoutes` com prefixo `/config` em `MI-server/src/app.ts` (depende de T026)
 - [X] T028 [P] [US1] Tornar `vectorStatus` **opcional** em `IPendingMaterial`, em `MI-server/src/@types/resources/materials/pdf/index.ts` (`vectorStatus?: VectorStatus`)
 - [X] T029 [US1] Condicionar a seleção de `vectorStatus` a `isAiEnabled()` em `MI-server/src/repositories/resources/materials/pdf/materialPdfViewRepository.ts`, `materialPdfAllListRepository.ts` e `materialPdfPendingListRepository.ts` — **não alterar** `materialPdfChatRepository.ts` nem `materialPdfSummaryRepository.ts`, cujas leituras são internas e só executam com a IA ativa (depende de T011, T028)
-- [ ] T030 [P] [US1] Criar `front/src/features/config/api/configApi.ts` com `getFeatureAvailabilityRequest()` e os tipos correspondentes
-- [ ] T031 [US1] Criar `front/src/context/FeaturesContext.tsx` que consulta a disponibilidade uma única vez no carregamento e a expõe ao app, tratando falha de rede como **IA desativada** — o padrão seguro é esconder (depende de T030)
-- [ ] T032 [US1] Criar o hook `front/src/features/config/hooks/useFeatures.ts` sobre o contexto (depende de T031)
-- [ ] T033 [US1] Envolver a árvore da aplicação com `FeaturesProvider` em `front/src/main.tsx` ou `front/src/app/Router.tsx` (depende de T031)
-- [ ] T034 [US1] Condicionar a ação de chat em `front/src/pages/HomePage.tsx` — combinar `useFeatures().ai.enabled` com `canUseAiChat(user)`, **sem** alterar `front/src/lib/permissions.ts`, que permanece puro (depende de T032)
-- [ ] T035 [P] [US1] Condicionar a ação de chat em `front/src/pages/MaterialsPage.tsx` pelo mesmo critério (depende de T032)
-- [ ] T036 [US1] Em `front/src/pages/MaterialDetailPage.tsx`: condicionar o painel de recursos de IA, o aviso `AiStatusNotice` e a chamada de `useMaterialSummary` — que **não deve ser disparada** com a IA desativada —, e tornar `vectorStatus` opcional no tipo de `front/src/features/materials/api/materialsApi.ts`, tratando a ausência do campo (depende de T028, T032)
-- [ ] T037 [US1] Redirecionar a rota `/materials/:id/chat` para o acervo em `front/src/app/Router.tsx` quando a IA estiver desativada (depende de T032)
+- [X] T030 [P] [US1] Criar `front/src/features/config/api/configApi.ts` com `getFeatureAvailabilityRequest()` e os tipos correspondentes
+- [X] T031 [US1] Criar `front/src/context/FeaturesContext.tsx` que consulta a disponibilidade uma única vez no carregamento e a expõe ao app, tratando falha de rede como **IA desativada** — o padrão seguro é esconder (depende de T030)
+- [X] T032 [US1] Criar o hook `front/src/features/config/hooks/useFeatures.ts` sobre o contexto (depende de T031)
+- [X] T033 [US1] Envolver a árvore da aplicação com `FeaturesProvider` em `front/src/main.tsx` ou `front/src/app/Router.tsx` (depende de T031)
+- [X] T034 [US1] Condicionar a ação de chat em `front/src/pages/HomePage.tsx` — combinar `useFeatures().ai.enabled` com `canUseAiChat(user)`, **sem** alterar `front/src/lib/permissions.ts`, que permanece puro (depende de T032)
+- [X] T035 [P] [US1] ~~Condicionar a ação de chat em `front/src/pages/MaterialsPage.tsx`~~ — **sem efeito**: a varredura por `onChat` mostrou que a ação de chat só existe em `HomePage.tsx`. `MaterialsPage` nunca a ofereceu
+- [X] T036 [US1] Em `front/src/pages/MaterialDetailPage.tsx`: condicionar o painel de recursos de IA, o aviso `AiStatusNotice` e a chamada de `useMaterialSummary` — que **não deve ser disparada** com a IA desativada —, e tornar `vectorStatus` opcional no tipo de `front/src/features/materials/api/materialsApi.ts`, tratando a ausência do campo (depende de T028, T032)
+- [X] T037 [US1] Redirecionar a rota `/materials/:id/chat` para o acervo em `front/src/app/Router.tsx` quando a IA estiver desativada (depende de T032)
 
 **Checkpoint**: nenhum vestígio de IA na tela nem no conteúdo devolvido pela API. É o MVP.
 

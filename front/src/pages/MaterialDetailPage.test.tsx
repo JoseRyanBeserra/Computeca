@@ -108,4 +108,47 @@ describe('MaterialDetailPage', () => {
       expect(mockApi.get).not.toHaveBeenCalledWith('/mis/m1/summary')
     })
   })
+
+  describe('IA desativada na instalação', () => {
+    const AI_OFF = { ai: { enabled: false, manageable: false } }
+
+    it('não mostra resumo, aviso de processamento nem botão de chat', async () => {
+      mockApi.get.mockResolvedValue({ data: material({ vectorStatus: 'DONE' }) })
+
+      renderWithProviders(<MaterialDetailPage />, {
+        route: '/materials/m1', path: '/materials/:id', features: AI_OFF,
+      })
+
+      expect(await screen.findByText('Guia de Geometria')).toBeInTheDocument()
+      expect(screen.queryByText(/Resumo por IA/i)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Conversar com IA/i })).not.toBeInTheDocument()
+      expect(screen.queryByText(/em processamento/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Recursos de IA indisponíveis/i)).not.toBeInTheDocument()
+    })
+
+    it('não consulta o resumo mesmo em material já vetorizado', async () => {
+      mockApi.get.mockResolvedValue({ data: material({ vectorStatus: 'DONE' }) })
+
+      renderWithProviders(<MaterialDetailPage />, {
+        route: '/materials/m1', path: '/materials/:id', features: AI_OFF,
+      })
+
+      await screen.findByText('Guia de Geometria')
+      expect(mockApi.get).not.toHaveBeenCalledWith('/mis/m1/summary')
+    })
+
+    it('nada de IA aparece quando a API omite vectorStatus (campo ausente)', async () => {
+      const semCampo = material()
+      delete (semCampo as { vectorStatus?: unknown }).vectorStatus
+      mockApi.get.mockResolvedValue({ data: semCampo })
+
+      renderWithProviders(<MaterialDetailPage />, {
+        route: '/materials/m1', path: '/materials/:id', features: AI_OFF,
+      })
+
+      expect(await screen.findByText('Guia de Geometria')).toBeInTheDocument()
+      expect(screen.queryByText(/Resumo por IA/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Recursos de IA indisponíveis/i)).not.toBeInTheDocument()
+    })
+  })
 })
