@@ -46,6 +46,33 @@ describe('MaterialDetailPage', () => {
     expect(mockApi.get).toHaveBeenCalledWith('/mis/m1')
   })
 
+  // FR-019 — o caminho para a edição existe só para quem pode editar.
+  // Ocultar é conveniência; a proteção real está no servidor, que recusa os
+  // demais perfis mesmo que alguém chegue à rota direto.
+  it('mostra o botão de editar para ADMIN', async () => {
+    setSession(makeUser({ role: 'ADMIN' }))
+    mockApi.get.mockResolvedValue({ data: material() })
+    renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+    await screen.findByText('Guia de Geometria')
+    expect(screen.getByRole('button', { name: /Editar/i })).toBeInTheDocument()
+  })
+
+  it('NÃO mostra o botão de editar para PROFESSOR nem para usuário comum', async () => {
+    mockApi.get.mockResolvedValue({ data: material() })
+    const { unmount } = renderWithProviders(<MaterialDetailPage />, {
+      route: '/materials/m1', path: '/materials/:id',
+    })
+    await screen.findByText('Guia de Geometria')
+    expect(screen.queryByRole('button', { name: /Editar/i })).not.toBeInTheDocument()
+    unmount()
+
+    setSession(makeUser({ role: 'COMMON', canUpload: false }))
+    renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+    await screen.findByText('Guia de Geometria')
+    expect(screen.queryByRole('button', { name: /Editar/i })).not.toBeInTheDocument()
+  })
+
   it('mostra o estado de erro', async () => {
     mockApi.get.mockRejectedValue(new Error('falha'))
     renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })

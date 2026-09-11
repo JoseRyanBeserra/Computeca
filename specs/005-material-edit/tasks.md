@@ -86,20 +86,20 @@ os valores novos aparecem e que nada mais mudou.
 
 ### Tests for User Story 1
 
-- [ ] T017 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: altera título, descrição e habilidades → `200` com os valores persistidos
-- [ ] T018 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: material **sem descrição** (cadastrado antes da exigência) recebe uma válida → `200`, e deixa de estar sem descrição (FR-005, SC-006)
-- [ ] T019 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts` dos limites, **iguais aos do cadastro**: `title` vazio ou só espaços → `422`; `title` com 256 → `422`; **com exatamente 255 → `200`**; `description` com 49 → `422`; **com exatamente 50 e com 2000 → `200`**; com 2001 → `422`
-- [ ] T020 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: valores cercados de espaços são persistidos **já aparados**
-- [ ] T021 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: edição **só de metadados** em material `APPROVED` → **continua `APPROVED`** e o documento não é tocado (FR-006)
-- [ ] T022 [P] [US1] Teste em `front/src/pages/MaterialEditPage.test.tsx`: a tela abre **preenchida com os valores atuais** do material (FR-020)
-- [ ] T023 [P] [US1] Teste em `front/src/pages/MaterialEditPage.test.tsx`: salvar é **impedido** com título vazio e com descrição abaixo do mínimo, com a regra informada **antes** da tentativa (FR-021)
-- [ ] T024 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx`: o caminho para a edição **aparece para `ADMIN`** e **não aparece** para os demais perfis (FR-019)
+- [X] T017 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: altera título, descrição e habilidades → `200` com os valores persistidos
+- [X] T018 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: material **sem descrição** (cadastrado antes da exigência) recebe uma válida → `200`, e deixa de estar sem descrição (FR-005, SC-006)
+- [X] T019 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts` dos limites, **iguais aos do cadastro**: `title` vazio ou só espaços → `422`; `title` com 256 → `422`; **com exatamente 255 → `200`**; `description` com 49 → `422`; **com exatamente 50 e com 2000 → `200`**; com 2001 → `422`
+- [X] T020 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: valores cercados de espaços são persistidos **já aparados**
+- [X] T021 [P] [US1] Teste em `MI-server/__tests__/integration/materials/materialEdit.test.ts`: edição **só de metadados** em material `APPROVED` → **continua `APPROVED`** e o documento não é tocado (FR-006)
+- [X] T022 [P] [US1] Teste em `front/src/pages/MaterialEditPage.test.tsx`: a tela abre **preenchida com os valores atuais** do material (FR-020)
+- [X] T023 [P] [US1] Teste em `front/src/pages/MaterialEditPage.test.tsx`: salvar é **impedido** com título vazio e com descrição abaixo do mínimo, com a regra informada **antes** da tentativa (FR-021)
+- [X] T024 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx`: o caminho para a edição **aparece para `ADMIN`** e **não aparece** para os demais perfis (FR-019)
 
 ### Implementation for User Story 1
 
-- [ ] T025 [US1] Implementar em `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o caminho de metadados: calcula o diff com `buildMaterialEditDiff`, atualiza pelo repositório e **grava `AuditLog` com ação `MI_UPDATED`** via `createAuditLog`, com `actorRole` vindo de `request.user.role` — como `materialPdfDeleteService` ja faz, em vez de fixar o valor — e `metadata` contendo apenas os campos alterados. **Esta gravação não é adiável** — o Princípio III exige registro para toda alteração de estado (depende de T006, T008)
-- [ ] T026 [US1] Criar `front/src/pages/MaterialEditPage.tsx` com título, descrição com contador ao vivo e `BnccHabilidadePicker`, importando os limites de `front/src/features/materials/constants.ts` — **nunca redeclarados**. Ao concluir, volta aos detalhes do material (depende de T012, T013, T014)
-- [ ] T027 [US1] Acrescentar em `front/src/pages/MaterialDetailPage.tsx` o caminho para a edição, visível **somente** quando `isSysAdmin(user)` — o predicado já existe em `front/src/lib/permissions.ts` (depende de T014)
+- [X] T025 [US1] Implementar em `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o caminho de metadados: calcula o diff com `buildMaterialEditDiff`, atualiza pelo repositório e **grava `AuditLog` com ação `MI_UPDATED`** via `createAuditLog`, com `actorRole` vindo de `request.user.role` — como `materialPdfDeleteService` ja faz, em vez de fixar o valor — e `metadata` contendo apenas os campos alterados. **Esta gravação não é adiável** — o Princípio III exige registro para toda alteração de estado (depende de T006, T008)
+- [X] T026 [US1] Criar `front/src/pages/MaterialEditPage.tsx` com título, descrição com contador ao vivo e `BnccHabilidadePicker`, importando os limites de `front/src/features/materials/constants.ts` — **nunca redeclarados**. Ao concluir, volta aos detalhes do material (depende de T012, T013, T014)
+- [X] T027 [US1] Acrescentar em `front/src/pages/MaterialDetailPage.tsx` o caminho para a edição, visível **somente** quando `isSysAdmin(user)` — o predicado já existe em `front/src/lib/permissions.ts` (depende de T014)
 
 **Checkpoint**: o problema que motivou a feature está resolvido, com rastro. **É o MVP.**
 
@@ -127,7 +127,7 @@ abre, que o antigo sumiu do armazenamento e que o material saiu do acervo públi
 
 - [ ] T035 [US2] Acrescentar remoção de objeto a `MI-server/src/lib/minio.ts`. É a única capacidade de armazenamento que o projeto ainda não usava — o soft delete de material nunca apagou arquivo. Todo acesso ao armazenamento continua passando por este módulo
 - [ ] T036 [US2] Implementar em `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o caminho de substituição, **nesta ordem exata**: valida o arquivo (magic bytes, tamanho, tipo — as mesmas verificações do cadastro) → grava sob **chave nova** → atualiza o registro com ponteiro do arquivo, transição de situação e invalidação dos dados de IA → **só então** remove o arquivo antigo. Falha ao atualizar remove o arquivo novo; falha ao remover o antigo **não desfaz nada** (depende de T025, T035)
-- [ ] T037 [US2] Acrescentar a `front/src/pages/MaterialEditPage.tsx` a seleção de arquivo e a confirmação explícita, avisando que o documento atual **será apagado e que isso não tem desfazer**; e o aviso, após salvar, de que o material voltou para revisão quando foi o caso (depende de T026)
+- [X] T037 [US2] Acrescentar a `front/src/pages/MaterialEditPage.tsx` a seleção de arquivo e a confirmação explícita, avisando que o documento atual **será apagado e que isso não tem desfazer**; e o aviso, após salvar, de que o material voltou para revisão quando foi o caso (depende de T026)
 
 **Checkpoint**: o documento é substituível, e nenhuma falha deixa material sem arquivo.
 
