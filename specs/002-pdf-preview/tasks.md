@@ -61,17 +61,17 @@ Feature **inteiramente de front-end**: todo o trabalho acontece em `front/src/`.
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, com a URL disponível, o elemento `<object>` tem `data` igual à URL obtida e `type="application/pdf"`. **Asseverar pelos atributos, nunca pelo texto de fallback**: no jsdom o `<object>` nunca falha ao carregar e seus filhos ficam sempre no DOM, então um teste que procure o texto de fallback passaria também no estado de sucesso, provando nada
-- [ ] T012 [P] [US1] Teste em `front/src/components/PdfPreview.test.tsx` do estado de carregamento: enquanto a URL não chega, há indicador de progresso e a área reserva altura, para o restante da página não saltar quando o documento chega
-- [ ] T013 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que a pré-visualização aparece na tela de detalhes de um material aprovado, **sem** que o botão "Abrir PDF" desapareça (FR-003)
-- [ ] T014 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que título, autor e habilidades BNCC são renderizados mesmo com a busca da URL ainda pendente (FR-004)
+- [X] T011 [P] [US1] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, com a URL disponível, o elemento `<object>` tem `data` igual à URL obtida e `type="application/pdf"`. **Asseverar pelos atributos, nunca pelo texto de fallback**: no jsdom o `<object>` nunca falha ao carregar e seus filhos ficam sempre no DOM, então um teste que procure o texto de fallback passaria também no estado de sucesso, provando nada
+- [X] T012 [P] [US1] Teste em `front/src/components/PdfPreview.test.tsx` do estado de carregamento: enquanto a URL não chega, há indicador de progresso e a área reserva altura, para o restante da página não saltar quando o documento chega
+- [X] T013 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que a pré-visualização aparece na tela de detalhes de um material aprovado, **sem** que o botão "Abrir PDF" desapareça (FR-003)
+- [X] T014 [P] [US1] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que título, autor e habilidades BNCC são renderizados mesmo com a busca da URL ainda pendente (FR-004)
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Criar `front/src/components/PdfPreview.tsx` recebendo `materialId`, `materialStatus`, `onOpenFullscreen` e `title` opcional, conforme [contracts/pdf-preview-component.md](./contracts/pdf-preview-component.md). O componente **não recebe a URL pronta** — obtém-na por `useMaterialFileUrl` (depende de T004)
-- [ ] T016 [US1] Em `PdfPreview`, renderizar o documento com `<object type="application/pdf">`, altura fixa e rolagem interna, usando os mesmos tokens de borda, fundo e tipografia das demais seções da tela de detalhes, conforme `front/CLAUDE.md` (depende de T015)
-- [ ] T017 [US1] Em `front/src/components/PdfPreview.tsx`, renderizar o estado de carregamento com altura reservada equivalente à do documento (depende de T015)
-- [ ] T018 [US1] Inserir `<PdfPreview>` em `front/src/pages/MaterialDetailPage.tsx` **imediatamente antes de `<AiSection>`** (hoje na linha 263), ou seja, depois das habilidades BNCC e antes da área de IA — o documento é o conteúdo principal, e o resumo por IA comenta sobre ele. Passar `handleOpenPdf` como `onOpenFullscreen`, para que exista **um único** caminho de abertura em tela cheia (depende de T015)
+- [X] T015 [US1] Criar `front/src/components/PdfPreview.tsx` recebendo `materialId`, `materialStatus`, `onOpenFullscreen` e `title` opcional, conforme [contracts/pdf-preview-component.md](./contracts/pdf-preview-component.md). O componente **não recebe a URL pronta** — obtém-na por `useMaterialFileUrl` (depende de T004)
+- [X] T016 [US1] Em `PdfPreview`, renderizar o documento com `<object type="application/pdf">`, altura fixa e rolagem interna, usando os mesmos tokens de borda, fundo e tipografia das demais seções da tela de detalhes, conforme `front/CLAUDE.md` (depende de T015)
+- [X] T017 [US1] Em `front/src/components/PdfPreview.tsx`, renderizar o estado de carregamento com altura reservada equivalente à do documento (depende de T015)
+- [X] T018 [US1] Inserir `<PdfPreview>` em `front/src/pages/MaterialDetailPage.tsx` **imediatamente antes de `<AiSection>`** (hoje na linha 263), ou seja, depois das habilidades BNCC e antes da área de IA — o documento é o conteúdo principal, e o resumo por IA comenta sobre ele. Passar `handleOpenPdf` como `onOpenFullscreen`, para que exista **um único** caminho de abertura em tela cheia (depende de T015)
 
 **Checkpoint**: o documento aparece na própria tela. É o MVP — entregue sozinho, resolve o problema de quem avalia material.
 
@@ -85,18 +85,18 @@ Feature **inteiramente de front-end**: todo o trabalho acontece em `front/src/`.
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx`: com a busca da URL falhando em **`403`**, exibir mensagem de indisponibilidade **sem** botão de tentar novamente — repetir uma recusa por permissão produziria a mesma recusa
-- [ ] T020 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx`: com falha em **`401`** e em **`404`**, mesmo tratamento de `403` — sem nova tentativa
-- [ ] T021 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx`: com falha em **`500`** ou erro de rede, exibir mensagem de indisponibilidade temporária **com** botão de tentar novamente (FR-008)
-- [ ] T022 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que acionar "tentar novamente" dispara nova busca da URL
-- [ ] T023 [P] [US2] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com a busca da URL falhando, os metadados continuam visíveis e o botão "Abrir PDF" continua presente e acionável (FR-006)
+- [X] T019 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx`: com a busca da URL falhando em **`403`**, exibir mensagem de indisponibilidade **sem** botão de tentar novamente — repetir uma recusa por permissão produziria a mesma recusa
+- [X] T020 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx`: com falha em **`401`** e em **`404`**, mesmo tratamento de `403` — sem nova tentativa
+- [X] T021 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx`: com falha em **`500`** ou erro de rede, exibir mensagem de indisponibilidade temporária **com** botão de tentar novamente (FR-008)
+- [X] T022 [P] [US2] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que acionar "tentar novamente" dispara nova busca da URL
+- [X] T023 [P] [US2] Teste em `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com a busca da URL falhando, os metadados continuam visíveis e o botão "Abrir PDF" continua presente e acionável (FR-006)
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Criar em `front/src/components/PdfPreview.tsx` a classificação da falha a partir do código de situação da resposta: **`401`, `403` e `404` → sem nova tentativa**; **demais falhas → com nova tentativa**, conforme [contracts/pdf-preview-component.md](./contracts/pdf-preview-component.md#distinção-entre-sem-permissão-e-falha-temporária) (depende de T015)
-- [ ] T025 [US2] Em `front/src/components/PdfPreview.tsx`, renderizar os dois estados de falha com mensagem compreensível e, quando couber, botão de tentar novamente ligado ao `refetch` do hook (depende de T024)
-- [ ] T026 [US2] Em `front/src/components/PdfPreview.tsx`, preencher o **conteúdo de fallback** do `<object>` com explicação e chamada para abrir em tela cheia — cobre nativamente o navegador sem suporte a PDF embutido, sem depender de detecção por JavaScript. **Não escrever teste automatizado para este conteúdo**: no jsdom ele está sempre presente, então qualquer asserção sobre ele é vazia. Verificação apenas manual (depende de T016)
-- [ ] T027 [US2] Garantir em `front/src/pages/MaterialDetailPage.tsx` que nenhuma falha da pré-visualização interrompe a renderização do restante da tela — a área do documento falha isolada (depende de T018)
+- [X] T024 [US2] Criar em `front/src/components/PdfPreview.tsx` a classificação da falha a partir do código de situação da resposta: **`401`, `403` e `404` → sem nova tentativa**; **demais falhas → com nova tentativa**, conforme [contracts/pdf-preview-component.md](./contracts/pdf-preview-component.md#distinção-entre-sem-permissão-e-falha-temporária) (depende de T015)
+- [X] T025 [US2] Em `front/src/components/PdfPreview.tsx`, renderizar os dois estados de falha com mensagem compreensível e, quando couber, botão de tentar novamente ligado ao `refetch` do hook (depende de T024)
+- [X] T026 [US2] Em `front/src/components/PdfPreview.tsx`, preencher o **conteúdo de fallback** do `<object>` com explicação e chamada para abrir em tela cheia — cobre nativamente o navegador sem suporte a PDF embutido, sem depender de detecção por JavaScript. **Não escrever teste automatizado para este conteúdo**: no jsdom ele está sempre presente, então qualquer asserção sobre ele é vazia. Verificação apenas manual (depende de T016)
+- [X] T027 [US2] Garantir em `front/src/pages/MaterialDetailPage.tsx` que nenhuma falha da pré-visualização interrompe a renderização do restante da tela — a área do documento falha isolada (depende de T018)
 
 **Checkpoint**: nenhuma tela de detalhes exibe área vazia sem explicação.
 
@@ -110,15 +110,15 @@ Feature **inteiramente de front-end**: todo o trabalho acontece em `front/src/`.
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, em tela estreita, **nenhum** elemento `<object>` é renderizado e a chamada para abrir em tela cheia aparece
-- [ ] T029 [P] [US3] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, em tela estreita, **nenhuma requisição da URL é emitida** — o hook é chamado com `enabled: false`, para o navegador não baixar o arquivo onde ele não será exibido
-- [ ] T030 [P] [US3] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, em largura de desktop, o documento volta a ser renderizado normalmente
+- [X] T028 [P] [US3] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, em tela estreita, **nenhum** elemento `<object>` é renderizado e a chamada para abrir em tela cheia aparece
+- [X] T029 [P] [US3] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, em tela estreita, **nenhuma requisição da URL é emitida** — o hook é chamado com `enabled: false`, para o navegador não baixar o arquivo onde ele não será exibido
+- [X] T030 [P] [US3] Teste em `front/src/components/PdfPreview.test.tsx` confirmando que, em largura de desktop, o documento volta a ser renderizado normalmente
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Em `front/src/components/PdfPreview.tsx`, consumir `useIsNarrowScreen()` e **não montar** o `<object>` quando verdadeiro — esconder por CSS deixaria o elemento no DOM e o navegador baixaria o PDF à toa (depende de T001, T015)
-- [ ] T032 [US3] Em `front/src/components/PdfPreview.tsx`, passar `enabled: !isNarrow` para `useMaterialFileUrl`, de modo que a busca do acesso não aconteça em tela estreita (depende de T007, T031)
-- [ ] T033 [US3] Em `front/src/components/PdfPreview.tsx`, renderizar em tela estreita um cartão com o nome do documento e chamada evidente para abrir em tela cheia, ligada a `onOpenFullscreen` (depende de T031)
+- [X] T031 [US3] Em `front/src/components/PdfPreview.tsx`, consumir `useIsNarrowScreen()` e **não montar** o `<object>` quando verdadeiro — esconder por CSS deixaria o elemento no DOM e o navegador baixaria o PDF à toa (depende de T001, T015)
+- [X] T032 [US3] Em `front/src/components/PdfPreview.tsx`, passar `enabled: !isNarrow` para `useMaterialFileUrl`, de modo que a busca do acesso não aconteça em tela estreita (depende de T007, T031)
+- [X] T033 [US3] Em `front/src/components/PdfPreview.tsx`, renderizar em tela estreita um cartão com o nome do documento e chamada evidente para abrir em tela cheia, ligada a `onOpenFullscreen` (depende de T031)
 
 **Checkpoint**: telas estreitas rolam de ponta a ponta, sem documento embutido e sem download desperdiçado.
 
@@ -126,11 +126,11 @@ Feature **inteiramente de front-end**: todo o trabalho acontece em `front/src/`.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] Documentar em `front/CLAUDE.md` a convenção da pré-visualização: acesso ao arquivo sempre por `useMaterialFileUrl`, nunca montando `<object>` diretamente, e a regra de não montar em tela estreita
-- [ ] T035 [P] Verificar a cobertura dos arquivos novos com `npm --prefix front run test:coverage`, atendendo ao Princípio V
-- [ ] T036 Executar `npm --prefix front run test` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
-- [ ] T037 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que o back segue íntegro — esta feature não deveria tê-lo tocado
-- [ ] T038 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo a verificação na aba de rede de que o PDF **não** é baixado em tela estreita
+- [X] T034 [P] Documentar em `front/CLAUDE.md` a convenção da pré-visualização: acesso ao arquivo sempre por `useMaterialFileUrl`, nunca montando `<object>` diretamente, e a regra de não montar em tela estreita
+- [X] T035 [P] Verificar a cobertura dos arquivos novos com `npm --prefix front run test:coverage`, atendendo ao Princípio V
+- [X] T036 Executar `npm --prefix front run test` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
+- [X] T037 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que o back segue íntegro — esta feature não deveria tê-lo tocado
+- [ ] T038 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo a verificação na aba de rede de que o PDF **não** é baixado em tela estreita — **PENDENTE**: os cenários 1, 3, 4, 5 e 6 exigem sessão autenticada na interface. Verificado sem login: build de produção limpo, ausência de erro no servidor de desenvolvimento e back intocado
 
 ---
 
