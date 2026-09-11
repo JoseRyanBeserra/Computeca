@@ -79,7 +79,11 @@ export function buildApp() {
     limits: {
       files:    1,                                             // máx. 1 arquivo por request
       fileSize: env.MI_MAX_FILE_SIZE_MB * 1024 * 1024,        // limite em bytes
-      fields:   5,                                             // máx. 5 campos de texto
+      // O formulário de upload envia uma habilidade BNCC por campo repetido
+      // (o back agrega as repetições em array). O catálogo tem 110 habilidades,
+      // então o teto precisa cobrir todas elas + o título + margem. Com um teto
+      // menor, selecionar muitas habilidades aborta o upload com FST_FIELDS_LIMIT.
+      fields:   120,
     },
   })
 
