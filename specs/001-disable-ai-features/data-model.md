@@ -75,9 +75,29 @@ O nível de banco **nunca** sobrepõe o de ambiente. Com `AI_FEATURES_ENABLED=fa
 
 | Entidade | Campos de IA | Tratamento |
 |---|---|---|
-| `MaterialInstrucional` | `summary`, `summaryStatus`, `summaryGeneratedAt`, `vectorStatus` | Preservados com os valores atuais. Não são lidos, escritos nem exibidos enquanto a IA estiver desativada. Nenhuma migração os altera. |
+| `MaterialInstrucional` | `summary`, `summaryStatus`, `summaryGeneratedAt`, `vectorStatus` | Preservados com os valores atuais. Nenhuma migração os altera e nada os escreve enquanto a IA estiver desativada. Também **não trafegam nas respostas da API** nesse estado — ver abaixo. |
 | `AuditLog` | — | Ganha um valor novo no campo livre `action`: `AI_AVAILABILITY_CHANGED`. O campo é `String`, então não há mudança de forma. |
 | `InspectionLog` | — | Inalterado. Os controllers novos gravam nos dois sentidos, como todos os demais. |
+
+### Campos de IA nas respostas da API (FR-017)
+
+Com a IA desativada, `vectorStatus` é **omitido do conteúdo retornado** pelas três rotas que hoje o
+expõem. Esconder apenas na interface deixaria o estado de IA visível a quem inspecionasse a
+resposta.
+
+| Repositório | Rota servida |
+|---|---|
+| `materialPdfViewRepository.ts` | `GET /mis/:id` |
+| `materialPdfAllListRepository.ts` | `GET /mis/all` |
+| `materialPdfPendingListRepository.ts` | listagem de pendentes do painel do professor |
+
+Consequência de tipo: `IPendingMaterial.vectorStatus` passa de obrigatório a **opcional**, e o tipo
+correspondente no front acompanha. O `MaterialDetailPage` é o único consumidor do campo no front e
+já deixa de renderizar o aviso nesse estado.
+
+**Leituras internas permanecem.** `materialPdfChatRepository` e `materialPdfSummaryRepository`
+selecionam `vectorStatus` para decidir se o material está pronto (`!== 'DONE'`). Isso não é payload
+e só executa com a IA ativa — fica como está.
 
 ### Estados de processamento congelados
 

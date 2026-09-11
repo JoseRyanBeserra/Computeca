@@ -39,6 +39,9 @@ confirmando ausência de elementos de IA.
    sem mensagem de erro técnica.
 4. **Given** um MI cujo processamento de IA ficou incompleto, **When** qualquer usuário o abre,
    **Then** nenhuma indicação de estado de processamento aparece.
+5. **Given** a IA desativada, **When** alguém inspeciona a resposta da consulta de um material ou
+   da listagem do acervo, **Then** nenhum campo de estado de processamento por IA está presente no
+   conteúdo retornado.
 
 ---
 
@@ -189,7 +192,13 @@ exercitar chat e resumo.
   execução enquanto a IA estiver desativada.
 - **FR-016**: O sistema MUST registrar, na inicialização, de forma visível nos registros da
   aplicação, se as funcionalidades de IA estão ativas ou desativadas.
-- **FR-017**: A cobertura de testes MUST exercitar o comportamento do sistema nos dois estados do
+- **FR-017**: Com a IA desativada, as respostas da API MUST omitir o estado de processamento por IA
+  dos materiais. O dado permanece no banco (FR-010), mas não trafega para nenhum cliente — esconder
+  apenas na interface deixaria o estado de IA exposto a quem inspecionasse a resposta.
+- **FR-018**: Com a IA ativada, o sistema MUST verificar na inicialização se os serviços de apoio
+  estão alcançáveis e MUST registrar aviso claro e específico para cada um que não estiver,
+  sem impedir a subida da aplicação.
+- **FR-019**: A cobertura de testes MUST exercitar o comportamento do sistema nos dois estados do
   interruptor, incluindo a recusa das operações de IA quando desativadas.
 
 ### Key Entities
@@ -212,8 +221,9 @@ exercitar chat e resumo.
 
 - **SC-001**: Uma varredura por todas as telas do sistema, em todos os perfis de acesso e também
   deslogado, encontra zero elementos de interface relacionados a IA.
-- **SC-002**: O ambiente padrão sobe com dois serviços a menos do que antes, e o consumo de
-  memória do conjunto cai de forma mensurável em relação à configuração anterior.
+- **SC-002**: O ambiente padrão sobe com dois serviços a menos do que antes — nenhum processo de
+  fila ou de busca vetorial em execução —, liberando na máquina os cerca de 54 MiB que eles
+  ocupavam em repouso na medição de referência.
 - **SC-003**: A aplicação permanece 30 minutos no ar sem os serviços de IA registrando zero erros
   ou avisos de falha de conexão com serviços ausentes.
 - **SC-004**: O consumo de tokens de IA no período com a funcionalidade desativada é exatamente
@@ -244,6 +254,13 @@ exercitar chat e resumo.
   proteção de segurança.
 - **Estado desativado é o padrão do projeto**: quem clonar o repositório e subir o ambiente obtém
   o Computeca sem IA, sem precisar configurar nada.
+- **Esta versão não vai para produção**: não há implantação em curso a coordenar, e um processo de
+  implantação diferente será definido no futuro. As alterações em arquivos de composição de
+  produção são feitas por consistência do repositório, não para atender a um ambiente ativo.
+- **A motivação é não manter serviços de pé para uma funcionalidade que não será usada**, e
+  preservar o código para o caso de a IA voltar ao projeto. A economia de memória é consequência,
+  não a justificativa principal — na medição de referência ela foi de ~54 MiB num total de
+  ~533 MiB.
 - **A recusa das operações de IA é tratada como funcionalidade indisponível**, não como falha do
   sistema, e portanto não polui os registros de erro.
 - **Nenhuma migração de banco é necessária**: os campos de IA permanecem no modelo de dados.

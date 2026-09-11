@@ -9,7 +9,7 @@ description: "Task list — Desativação Global das Funcionalidades de IA"
 
 **Prerequisites**: [plan.md](./plan.md), [spec.md](./spec.md), [research.md](./research.md), [data-model.md](./data-model.md), [contracts/](./contracts/)
 
-**Tests**: Incluídos e **obrigatórios**. O FR-017 exige cobertura nos dois estados do interruptor, e o Princípio V da constituição exige teste acompanhando a feature, com caminhos de erro e de autorização negada como casos obrigatórios.
+**Tests**: Incluídos e **obrigatórios**. O FR-019 exige cobertura nos dois estados do interruptor, e o Princípio V da constituição exige teste acompanhando a feature, com caminhos de erro e de autorização negada como casos obrigatórios.
 
 **Organization**: Tarefas agrupadas por história de usuário, para que cada uma seja implementável e testável de forma independente.
 
@@ -62,34 +62,37 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ## Phase 3: User Story 1 — Acervo sem vestígio de IA na interface (Priority: P1) 🎯 MVP
 
-**Goal**: nenhum usuário, em nenhum perfil, encontra resumo, chat ou aviso de processamento por IA em qualquer tela.
+**Goal**: nenhum usuário, em nenhum perfil, encontra resumo, chat ou estado de processamento por IA — nem na tela, nem no conteúdo devolvido pela API.
 
-**Independent Test**: percorrer todas as telas deslogado e logado em cada perfil, confirmando ausência total de elementos de IA, inclusive em material que já possui resumo gravado.
+**Independent Test**: percorrer todas as telas deslogado e logado em cada perfil, confirmando ausência total de elementos de IA, inclusive em material que já possui resumo gravado; e inspecionar as respostas de consulta de material confirmando ausência de `vectorStatus`.
 
 ### Tests for User Story 1
 
 - [ ] T018 [P] [US1] Teste de integração de `GET /config/features` em `MI-server/__tests__/integration/config/featureAvailability.test.ts`, cobrindo as três combinações válidas de `enabled`/`manageable`, o acesso **sem token** e o registro malformado, conforme `contracts/get-config-features.md`
-- [ ] T019 [P] [US1] Teste de `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com IA desativada, não há painel de resumo nem aviso de processamento — **inclusive para material com resumo já gravado**
-- [ ] T020 [P] [US1] Teste de `front/src/pages/HomePage.test.tsx` confirmando ausência de ação de chat nos cards com IA desativada, para todos os perfis
-- [ ] T021 [P] [US1] Teste de `front/src/app/Router.test.tsx` confirmando que `/materials/:id/chat` redireciona para uma tela válida do acervo com IA desativada, sem mensagem de erro técnica
+- [ ] T019 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialAiFieldsOmitted.test.ts` provando que, com a IA desativada, `GET /mis/:id` e `GET /mis/all` **não** incluem `vectorStatus` no conteúdo retornado, e que com a IA ativada o campo volta a aparecer (FR-017)
+- [ ] T020 [P] [US1] Teste de `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com IA desativada, não há painel de resumo nem aviso de processamento — **inclusive para material com resumo já gravado** e com `vectorStatus` ausente na resposta
+- [ ] T021 [P] [US1] Teste de `front/src/pages/HomePage.test.tsx` confirmando ausência de ação de chat nos cards com IA desativada, para todos os perfis
+- [ ] T022 [P] [US1] Teste de `front/src/app/Router.test.tsx` confirmando que `/materials/:id/chat` redireciona para uma tela válida do acervo com IA desativada, sem mensagem de erro técnica
 
 ### Implementation for User Story 1
 
-- [ ] T022 [P] [US1] Criar `IFeatureAvailability` e `GetFeatureAvailabilityResponse` em `MI-server/src/@types/config/index.ts`, com o formato `{ ai: { enabled: boolean, manageable: boolean } }`
-- [ ] T023 [US1] Criar `MI-server/src/services/config/getFeatureAvailabilityService.ts` retornando `IFeatureAvailability` a partir de `isAiEnabled()` e `isAiManageable()`, com `logger.info` de entrada e saída (depende de T011, T022)
-- [ ] T024 [US1] Criar `MI-server/src/controllers/config/getFeatureAvailabilityController.ts` seguindo o padrão do projeto, com `InspectionLog` `CLIENT_TO_SERVER` antes do try/catch e `SERVER_TO_CLIENT` no sucesso e no erro (depende de T023)
-- [ ] T025 [US1] Criar `MI-server/src/routes/config/configRoutes.ts` registrando `GET /features` **sem** `authenticate`, com JSDoc declarando explicitamente que a rota é pública e por quê, conforme o Princípio II (depende de T024)
-- [ ] T026 [US1] Registrar `configRoutes` com prefixo `/config` em `MI-server/src/app.ts` (depende de T025)
-- [ ] T027 [P] [US1] Criar `front/src/features/config/api/configApi.ts` com `getFeatureAvailabilityRequest()` e os tipos correspondentes
-- [ ] T028 [US1] Criar `front/src/context/FeaturesContext.tsx` que consulta a disponibilidade uma única vez no carregamento e a expõe ao app, tratando falha de rede como **IA desativada** — o padrão seguro é esconder (depende de T027)
-- [ ] T029 [US1] Criar o hook `front/src/features/config/hooks/useFeatures.ts` sobre o contexto (depende de T028)
-- [ ] T030 [US1] Envolver a árvore da aplicação com `FeaturesProvider` em `front/src/main.tsx` ou `front/src/app/Router.tsx` (depende de T028)
-- [ ] T031 [US1] Condicionar a ação de chat em `front/src/pages/HomePage.tsx` — combinar `useFeatures().ai.enabled` com `canUseAiChat(user)`, **sem** alterar `front/src/lib/permissions.ts`, que permanece puro (depende de T029)
-- [ ] T032 [P] [US1] Condicionar a ação de chat em `front/src/pages/MaterialsPage.tsx` pelo mesmo critério (depende de T029)
-- [ ] T033 [US1] Condicionar em `front/src/pages/MaterialDetailPage.tsx` o painel de recursos de IA, o aviso de processamento e a chamada do hook `useMaterialSummary`, que **não deve ser disparada** com a IA desativada (depende de T029)
-- [ ] T034 [US1] Redirecionar a rota `/materials/:id/chat` para o acervo em `front/src/app/Router.tsx` quando a IA estiver desativada (depende de T029)
+- [ ] T023 [P] [US1] Criar `IFeatureAvailability` e `GetFeatureAvailabilityResponse` em `MI-server/src/@types/config/index.ts`, com o formato `{ ai: { enabled: boolean, manageable: boolean } }`
+- [ ] T024 [US1] Criar `MI-server/src/services/config/getFeatureAvailabilityService.ts` retornando `IFeatureAvailability` a partir de `isAiEnabled()` e `isAiManageable()`, com `logger.info` de entrada e saída (depende de T011, T023)
+- [ ] T025 [US1] Criar `MI-server/src/controllers/config/getFeatureAvailabilityController.ts` seguindo o padrão do projeto, com `InspectionLog` `CLIENT_TO_SERVER` antes do try/catch e `SERVER_TO_CLIENT` no sucesso e no erro (depende de T024)
+- [ ] T026 [US1] Criar `MI-server/src/routes/config/configRoutes.ts` registrando `GET /features` **sem** `authenticate`, com JSDoc declarando explicitamente que a rota é pública e por quê, conforme o Princípio II (depende de T025)
+- [ ] T027 [US1] Registrar `configRoutes` com prefixo `/config` em `MI-server/src/app.ts` (depende de T026)
+- [ ] T028 [P] [US1] Tornar `vectorStatus` **opcional** em `IPendingMaterial`, em `MI-server/src/@types/resources/materials/pdf/index.ts` (`vectorStatus?: VectorStatus`)
+- [ ] T029 [US1] Condicionar a seleção de `vectorStatus` a `isAiEnabled()` em `MI-server/src/repositories/resources/materials/pdf/materialPdfViewRepository.ts`, `materialPdfAllListRepository.ts` e `materialPdfPendingListRepository.ts` — **não alterar** `materialPdfChatRepository.ts` nem `materialPdfSummaryRepository.ts`, cujas leituras são internas e só executam com a IA ativa (depende de T011, T028)
+- [ ] T030 [P] [US1] Criar `front/src/features/config/api/configApi.ts` com `getFeatureAvailabilityRequest()` e os tipos correspondentes
+- [ ] T031 [US1] Criar `front/src/context/FeaturesContext.tsx` que consulta a disponibilidade uma única vez no carregamento e a expõe ao app, tratando falha de rede como **IA desativada** — o padrão seguro é esconder (depende de T030)
+- [ ] T032 [US1] Criar o hook `front/src/features/config/hooks/useFeatures.ts` sobre o contexto (depende de T031)
+- [ ] T033 [US1] Envolver a árvore da aplicação com `FeaturesProvider` em `front/src/main.tsx` ou `front/src/app/Router.tsx` (depende de T031)
+- [ ] T034 [US1] Condicionar a ação de chat em `front/src/pages/HomePage.tsx` — combinar `useFeatures().ai.enabled` com `canUseAiChat(user)`, **sem** alterar `front/src/lib/permissions.ts`, que permanece puro (depende de T032)
+- [ ] T035 [P] [US1] Condicionar a ação de chat em `front/src/pages/MaterialsPage.tsx` pelo mesmo critério (depende de T032)
+- [ ] T036 [US1] Em `front/src/pages/MaterialDetailPage.tsx`: condicionar o painel de recursos de IA, o aviso `AiStatusNotice` e a chamada de `useMaterialSummary` — que **não deve ser disparada** com a IA desativada —, e tornar `vectorStatus` opcional no tipo de `front/src/features/materials/api/materialsApi.ts`, tratando a ausência do campo (depende de T028, T032)
+- [ ] T037 [US1] Redirecionar a rota `/materials/:id/chat` para o acervo em `front/src/app/Router.tsx` quando a IA estiver desativada (depende de T032)
 
-**Checkpoint**: interface limpa de IA para todos os perfis. É o MVP — entregue sozinho, já cumpre a promessa ao usuário final.
+**Checkpoint**: nenhum vestígio de IA na tela nem no conteúdo devolvido pela API. É o MVP.
 
 ---
 
@@ -97,21 +100,23 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 **Goal**: `docker compose up -d` não inicia fila nem busca vetorial, e a aplicação sobe íntegra sem eles.
 
-**Independent Test**: subir a stack, listar os serviços ativos e acompanhar os registros por alguns minutos, confirmando ausência de erros recorrentes de conexão.
+**Independent Test**: subir a stack, listar os serviços ativos e acompanhar os registros por 30 minutos, confirmando ausência de erros recorrentes de conexão.
 
 ### Tests for User Story 2
 
-- [ ] T035 [P] [US2] Teste de integração em `MI-server/__tests__/integration/config/aiDisabledBoot.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, a construção da aplicação não invoca `ensureQdrantCollection` nem instancia a fila (clientes espionados)
-- [ ] T036 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/env.test.ts` cobrindo os dois lados de T002: `OPENAI_API_KEY` ausente **aceita** com IA desligada e **rejeitada** com IA ligada
+- [ ] T038 [P] [US2] Teste de integração em `MI-server/__tests__/integration/config/aiDisabledBoot.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, a construção da aplicação não invoca `ensureQdrantCollection` nem instancia a fila (clientes espionados)
+- [ ] T039 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/env.test.ts` cobrindo os dois lados de T002: `OPENAI_API_KEY` ausente **aceita** com IA desligada e **rejeitada** com IA ligada
+- [ ] T040 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com a IA ligada e o Redis inalcançável, a verificação de inicialização registra aviso específico e **não** derruba a aplicação; e que nada é registrado com a IA desligada (FR-018)
 
 ### Implementation for User Story 2
 
-- [ ] T037 [US2] Condicionar a chamada de `ensureQdrantCollection()` em `MI-server/src/server.ts` a `env.AI_FEATURES_ENABLED`, preservando o `try/catch` com aviso quando a IA estiver ligada (depende de T001)
-- [ ] T038 [US2] Registrar na inicialização, em `MI-server/src/server.ts`, uma linha explícita informando se as funcionalidades de IA estão ativas ou desativadas, atendendo ao FR-016 (depende de T001)
-- [ ] T039 [US2] Fazer `MI-server/src/workers/vectorizeWorker.ts` encerrar de forma limpa, com mensagem explicativa e código de saída `0`, quando iniciado com a IA desativada (depende de T001)
-- [ ] T040 [P] [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `MI-server/docker-compose.yml`, sem remover nenhuma definição de serviço ou volume
-- [ ] T041 [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `docker-compose.prod.yml` e **remover do serviço `app` as entradas `depends_on` que apontam para eles** — um `depends_on` para serviço fora do profile ativo impede a stack de subir (ver `research.md`, item 9)
-- [ ] T042 [P] [US2] Atualizar as instruções de subida em `MI-server/docker-compose.yml` e `README.md`, documentando `docker compose up -d` para a stack enxuta e `docker compose --profile ai up -d` para incluir os serviços de IA
+- [ ] T041 [US2] Condicionar a chamada de `ensureQdrantCollection()` em `MI-server/src/server.ts` a `env.AI_FEATURES_ENABLED`, preservando o `try/catch` com aviso quando a IA estiver ligada (depende de T001)
+- [ ] T042 [US2] Registrar na inicialização, em `MI-server/src/server.ts`, uma linha explícita informando se as funcionalidades de IA estão ativas ou desativadas, atendendo ao FR-016 (depende de T001)
+- [ ] T043 [US2] Acrescentar a `MI-server/src/server.ts` uma verificação de alcance do **Redis** executada apenas quando a IA está ligada, registrando aviso claro e específico em caso de falha, sem impedir a subida — hoje a fila preguiçosa não conecta no boot, então a ausência do Redis só apareceria ao aprovar um material (FR-018, depende de T001, T013)
+- [ ] T044 [US2] Fazer `MI-server/src/workers/vectorizeWorker.ts` encerrar de forma limpa, com mensagem explicativa e código de saída `0`, quando iniciado com a IA desativada (depende de T001)
+- [ ] T045 [P] [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `MI-server/docker-compose.yml`, sem remover nenhuma definição de serviço ou volume
+- [ ] T046 [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `docker-compose.prod.yml` e **remover do serviço `app` as entradas `depends_on` que apontam para eles** — um `depends_on` para serviço fora do profile ativo impede a stack de subir. Esta versão não vai para produção, então a alteração é por consistência do repositório
+- [ ] T047 [P] [US2] Atualizar as instruções de subida em `MI-server/docker-compose.yml` e `README.md`, documentando `docker compose up -d` para a stack enxuta e `docker compose --profile ai up -d` para incluir os serviços de IA
 
 **Checkpoint**: ambiente enxuto no ar, sem erro de conexão e sem depender de fila para aprovar material.
 
@@ -125,16 +130,16 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 3
 
-- [ ] T043 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` cobrindo `POST /mis/:id/chat` e `GET /mis/:id/summary` com IA desativada — `503` e `code: AI_DISABLED` — e a volta ao comportamento original com a IA ativada
-- [ ] T044 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` garantindo que, **sem token**, ambas as rotas respondem `401` e nunca `503`, provando a ordem dos `preHandler`
-- [ ] T045 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts`, com o cliente de IA espionado, provando que nenhuma chamada ao provedor é emitida com a IA desativada (FR-007)
-- [ ] T046 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialReviewNoQueue.test.ts` provando que aprovar um material com IA desativada conclui com sucesso e **não cria job**, deixando `vectorStatus` em `PENDING`
+- [ ] T048 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` cobrindo `POST /mis/:id/chat` e `GET /mis/:id/summary` com IA desativada — `503` e `code: AI_DISABLED` — e a volta ao comportamento original com a IA ativada
+- [ ] T049 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` garantindo que, **sem token**, ambas as rotas respondem `401` e nunca `503`, provando a ordem dos `preHandler`
+- [ ] T050 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts`, com o cliente de IA espionado, provando que nenhuma chamada ao provedor é emitida com a IA desativada (FR-007)
+- [ ] T051 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialReviewNoQueue.test.ts` provando que aprovar um material com IA desativada conclui com sucesso e **não cria job**, deixando `vectorStatus` em `PENDING`
 
 ### Implementation for User Story 3
 
-- [ ] T047 [US3] Criar `MI-server/src/middlewares/requireAiEnabled.ts` seguindo a assinatura de `requireUploadPermission`, lançando `GeneralErrorResponse(StatusCode.SERVICE_UNAVAILABLE, buildError(ERRORS.AI.AI_DISABLED))` quando `isAiEnabled()` for falso, com JSDoc explicando o uso após `authenticate` (depende de T003, T004, T011)
-- [ ] T048 [US3] Aplicar `requireAiEnabled` como `preHandler` **após** `authenticate` nas rotas `POST /:id/chat` e `GET /:id/summary` em `MI-server/src/routes/resources/materials/pdf/materialPdfUploadRoutes.ts`, mantendo ambas registradas nos dois estados do interruptor (depende de T047)
-- [ ] T049 [US3] Condicionar o enfileiramento em `MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts` — com a IA desativada, a aprovação conclui sem chamar `vectorizeQueue.add`, e o acesso passa a usar `getVectorizeQueue()` (depende de T013, T011)
+- [ ] T052 [US3] Criar `MI-server/src/middlewares/requireAiEnabled.ts` seguindo a assinatura de `requireUploadPermission`, lançando `GeneralErrorResponse(StatusCode.SERVICE_UNAVAILABLE, buildError(ERRORS.AI.AI_DISABLED))` quando `isAiEnabled()` for falso, com JSDoc explicando o uso após `authenticate` (depende de T003, T004, T011)
+- [ ] T053 [US3] Aplicar `requireAiEnabled` como `preHandler` **após** `authenticate` nas rotas `POST /:id/chat` e `GET /:id/summary` em `MI-server/src/routes/resources/materials/pdf/materialPdfUploadRoutes.ts`, mantendo ambas registradas nos dois estados do interruptor (depende de T052)
+- [ ] T054 [US3] Condicionar o enfileiramento em `MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts` — com a IA desativada, a aprovação conclui sem chamar `vectorizeQueue.add`, e o acesso passa a usar `getVectorizeQueue()` (depende de T011, T013)
 
 **Checkpoint**: porta dos fundos fechada. Orçamento de tokens e registros de erro protegidos contra chamadas diretas.
 
@@ -148,23 +153,23 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 4
 
-- [ ] T050 [P] [US4] Teste de integração de `PATCH /config/features/ai` em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts`, cobrindo desligar, religar, `403` para `PROFESSOR`, `401` sem token e `422` para `{"enabled": "false"}`, conforme `contracts/patch-admin-features-ai.md`
-- [ ] T051 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, o `PATCH` responde `409` com `code: AI_NOT_MANAGEABLE` e **nada é gravado** no banco
-- [ ] T052 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando o efeito sem reinício: após desligar pelo painel, `POST /mis/:id/chat` passa a responder `503` na mesma execução da aplicação (SC-008)
-- [ ] T053 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que a mudança de valor grava `AuditLog` com `action: AI_AVAILABILITY_CHANGED` e `metadata: { de, para }`, e que **repetir o mesmo valor não gera registro**
-- [ ] T054 [P] [US4] Teste de `front/src/pages/AdminDashboardPage.test.tsx` confirmando que o controle aparece **bloqueado e explicado** quando `manageable` é `false`, e operante quando é `true`
-- [ ] T055 [P] [US4] Teste do comando de reprocessamento em `MI-server/__tests__/unit/scripts/aiBackfill.test.ts`, cobrindo a recusa com IA desativada, a contagem informada antes de iniciar e a seleção de `PENDING` e `FAILED` com exclusão de `PROCESSING`
+- [ ] T055 [P] [US4] Teste de integração de `PATCH /config/features/ai` em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts`, cobrindo desligar, religar, `403` para `PROFESSOR`, `401` sem token e `422` para `{"enabled": "false"}`, conforme `contracts/patch-admin-features-ai.md`
+- [ ] T056 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, o `PATCH` responde `409` com `code: AI_NOT_MANAGEABLE` e **nada é gravado** no banco
+- [ ] T057 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando o efeito sem reinício: após desligar pelo painel, `POST /mis/:id/chat` passa a responder `503` na mesma execução da aplicação (SC-008)
+- [ ] T058 [P] [US4] Teste em `MI-server/__tests__/integration/config/updateAiAvailability.test.ts` provando que a mudança de valor grava `AuditLog` com `action: AI_AVAILABILITY_CHANGED` e `metadata: { de, para }`, e que **repetir o mesmo valor não gera registro**
+- [ ] T059 [P] [US4] Teste de `front/src/pages/AdminDashboardPage.test.tsx` confirmando que o controle aparece **bloqueado e explicado** quando `manageable` é `false`, e operante quando é `true`
+- [ ] T060 [P] [US4] Teste do comando de reprocessamento em `MI-server/__tests__/unit/scripts/aiBackfill.test.ts`, cobrindo a recusa com IA desativada, a contagem informada antes de iniciar e a seleção de `PENDING` e `FAILED` com exclusão de `PROCESSING`
 
 ### Implementation for User Story 4
 
-- [ ] T056 [P] [US4] Criar `MI-server/src/schemas/config/updateAiAvailabilitySchema.ts` exportando `UpdateAiAvailabilityBodySchema` com `enabled: z.boolean()` estrito, o tipo `UpdateAiAvailabilityRequest`, o schema de service `updateAiAvailabilitySchema` com `updatedById` e o tipo `UpdateAiAvailabilityServiceInput`
-- [ ] T057 [US4] Criar `MI-server/src/services/config/updateAiAvailabilityService.ts` — valida com `validateRequest`, recusa com `409 AI_NOT_MANAGEABLE` quando `isAiManageable()` for falso, grava via `upsertAppSetting` no formato `{ "enabled": boolean }`, invalida o cache e grava `AuditLog` **apenas quando o valor muda** (depende de T010, T012, T056)
-- [ ] T058 [US4] Criar `MI-server/src/controllers/config/updateAiAvailabilityController.ts` com `authorizeByRole(request.user.role, [ADMIN])` e `InspectionLog` nos dois sentidos, sucesso e erro (depende de T057)
-- [ ] T059 [US4] Registrar `PATCH /features/ai` com `preHandler: [authenticate]` em `MI-server/src/routes/config/configRoutes.ts`, com JSDoc `/** PATCH /config/features/ai — altera a disponibilidade da IA (ADMIN) */` (depende de T058)
-- [ ] T060 [P] [US4] Acrescentar `updateAiAvailabilityRequest()` a `front/src/features/config/api/configApi.ts` (depende de T027)
-- [ ] T061 [US4] Acrescentar a `front/src/pages/AdminDashboardPage.tsx` a seção de disponibilidade da IA, com o controle desabilitado e texto explicativo quando `manageable` for `false`, e invalidação da consulta de features após a alteração (depende de T029, T060)
-- [ ] T062 [P] [US4] Criar `MI-server/scripts/aiBackfill.ts` que recusa execução com a IA desativada, seleciona materiais `APPROVED` com `vectorStatus` em `PENDING` ou `FAILED` — **excluindo `PROCESSING`**, que pode ter job vivo —, informa o total antes de iniciar e enfileira via `getVectorizeQueue()` (depende de T011, T013)
-- [ ] T063 [US4] Registrar o script `"ai:backfill": "tsx scripts/aiBackfill.ts"` em `MI-server/package.json` (depende de T062)
+- [ ] T061 [P] [US4] Criar `MI-server/src/schemas/config/updateAiAvailabilitySchema.ts` exportando `UpdateAiAvailabilityBodySchema` com `enabled: z.boolean()` estrito, o tipo `UpdateAiAvailabilityRequest`, o schema de service `updateAiAvailabilitySchema` com `updatedById` e o tipo `UpdateAiAvailabilityServiceInput`
+- [ ] T062 [US4] Criar `MI-server/src/services/config/updateAiAvailabilityService.ts` — valida com `validateRequest`, recusa com `409 AI_NOT_MANAGEABLE` quando `isAiManageable()` for falso, grava via `upsertAppSetting` no formato `{ "enabled": boolean }`, invalida o cache e grava `AuditLog` **apenas quando o valor muda** (depende de T010, T012, T061)
+- [ ] T063 [US4] Criar `MI-server/src/controllers/config/updateAiAvailabilityController.ts` com `authorizeByRole(request.user.role, [ADMIN])` e `InspectionLog` nos dois sentidos, sucesso e erro (depende de T062)
+- [ ] T064 [US4] Registrar `PATCH /features/ai` com `preHandler: [authenticate]` em `MI-server/src/routes/config/configRoutes.ts`, com JSDoc `/** PATCH /config/features/ai — altera a disponibilidade da IA (ADMIN) */` (depende de T063)
+- [ ] T065 [P] [US4] Acrescentar `updateAiAvailabilityRequest()` a `front/src/features/config/api/configApi.ts` (depende de T030)
+- [ ] T066 [US4] Acrescentar a `front/src/pages/AdminDashboardPage.tsx` a seção de disponibilidade da IA, com o controle desabilitado e texto explicativo quando `manageable` for `false`, e invalidação da consulta de features após a alteração (depende de T032, T065)
+- [ ] T067 [P] [US4] Criar `MI-server/scripts/aiBackfill.ts` que recusa execução com a IA desativada, seleciona materiais `APPROVED` com `vectorStatus` em `PENDING` ou `FAILED` — **excluindo `PROCESSING`**, que pode ter job vivo —, informa o total antes de iniciar e enfileira via `getVectorizeQueue()` (depende de T011, T013)
+- [ ] T068 [US4] Registrar o script `"ai:backfill": "tsx scripts/aiBackfill.ts"` em `MI-server/package.json` (depende de T067)
 
 **Checkpoint**: decisão reversível de ponta a ponta, sem nenhum arquivo restaurado.
 
@@ -172,11 +177,11 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T064 [P] Documentar o interruptor de dois níveis e os perfis do Compose em `README.md` e `MI-server/CLAUDE.md`
-- [ ] T065 [P] Verificar a cobertura das funções tocadas com `npm --prefix MI-server run test:coverage`, atendendo ao Princípio V
-- [ ] T066 Executar a suíte completa nas duas pontas — `test:unit`, `test:integration` e `npm --prefix front run test` — confirmando que nenhum fluxo não-IA teve expectativa alterada (SC-005)
-- [ ] T067 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, medindo o consumo de memória para comparar com a linha de base de ~533 MiB (SC-002)
-- [ ] T068 Confirmar `git diff --stat --diff-filter=D main...001-disable-ai-features` com saída vazia, provando que nenhum arquivo foi removido (SC-007)
+- [ ] T069 [P] Documentar o interruptor de dois níveis e os perfis do Compose em `README.md` e `MI-server/CLAUDE.md`
+- [ ] T070 [P] Verificar a cobertura das funções tocadas com `npm --prefix MI-server run test:coverage`, atendendo ao Princípio V
+- [ ] T071 Executar a suíte completa nas duas pontas — `test:unit`, `test:integration` e `npm --prefix front run test` — confirmando que nenhum fluxo não-IA teve expectativa alterada (SC-005)
+- [ ] T072 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, medindo o consumo de memória para comparar com a linha de base de ~533 MiB (SC-002)
+- [ ] T073 Confirmar `git diff --stat --diff-filter=D main...001-disable-ai-features` com saída vazia, provando que nenhum arquivo foi removido (SC-007)
 
 ---
 
@@ -194,7 +199,7 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 - **US1 (P1)**: independente após a Fase 2
 - **US2 (P1)**: independente após a Fase 2 — não depende de US1
 - **US3 (P2)**: independente após a Fase 2. Na prática combina bem com US2, que remove os serviços que as rotas recusadas usariam
-- **US4 (P3)**: usa a rota `GET /config/features` de US1 (T025) e o cliente de front de T027. **Faça US1 antes de US4.**
+- **US4 (P3)**: usa a rota `GET /config/features` de US1 (T026) e o cliente de front de T030. **Faça US1 antes de US4.**
 
 ### Parallel Opportunities
 
@@ -202,7 +207,7 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 - T010, T013, T014 em paralelo dentro da Fase 2
 - Todos os testes de uma mesma história marcados `[P]`
 - US1 e US2 podem correr em paralelo por pessoas diferentes — tocam arquivos disjuntos
-- US3 toca apenas back; US1 toca majoritariamente front
+- US3 toca apenas back; US1 toca as duas pontas
 
 ---
 
@@ -211,6 +216,7 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 ```bash
 # Testes da US1, juntos:
 Task: "Teste de integração de GET /config/features em MI-server/__tests__/integration/config/featureAvailability.test.ts"
+Task: "Teste de omissão de vectorStatus em MI-server/__tests__/integration/materials/materialAiFieldsOmitted.test.ts"
 Task: "Teste de MaterialDetailPage em front/src/pages/MaterialDetailPage.test.tsx"
 Task: "Teste de HomePage em front/src/pages/HomePage.test.tsx"
 Task: "Teste de Router em front/src/app/Router.test.tsx"
@@ -225,14 +231,14 @@ Task: "Teste de Router em front/src/app/Router.test.tsx"
 1. Fase 1 — Setup
 2. Fase 2 — Foundational (**crítica**, bloqueia tudo)
 3. Fase 3 — US1
-4. **PARE E VALIDE**: percorra as telas em todos os perfis
+4. **PARE E VALIDE**: percorra as telas em todos os perfis e inspecione o conteúdo devolvido pela API
 5. A promessa ao usuário final já está cumprida
 
 ### Incremental Delivery
 
 1. Setup + Foundational → base pronta
-2. + US1 → interface limpa → **MVP**
-3. + US2 → recursos liberados na máquina
+2. + US1 → interface e payload limpos → **MVP**
+3. + US2 → serviços fora do ar
 4. + US3 → orçamento de tokens protegido
 5. + US4 → decisão reversível
 
