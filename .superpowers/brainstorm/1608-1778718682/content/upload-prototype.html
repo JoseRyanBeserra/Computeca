@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protótipo — Upload MI</title>
+  <style>
+    :root {
+      --bg-base: #0f0c29;
+      --accent-purple: #7c3aed;
+      --accent-blue: #3b82f6;
+      --accent-light: #818cf8;
+      --accent-cyan: #38bdf8;
+      --glass-bg: rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.10);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-primary);
+      padding: 28px 24px;
+    }
+    .app-shell { max-width: 1000px; margin: 0 auto; }
+
+    /* NAVBAR */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 36px;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-text {
+      font-weight: 700; font-size: 15px;
+      background: linear-gradient(90deg, var(--accent-light), var(--accent-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .nav-user { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white;
+    }
+
+    /* STEPPER */
+    .stepper {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-bottom: 28px;
+    }
+    .step { display: flex; align-items: center; gap: 10px; }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      border: 2px solid var(--glass-border);
+      color: var(--text-muted);
+    }
+    .step-circle.active {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      border-color: transparent; color: white;
+    }
+    .step-circle.done {
+      background: rgba(124,58,237,0.2); border-color: var(--accent-purple); color: var(--accent-light);
+    }
+    .step-label { font-size: 13px; color: var(--text-muted); }
+    .step-label.active { color: var(--text-primary); font-weight: 600; }
+    .step-connector { width: 56px; height: 1px; background: var(--glass-border); margin: 0 8px; }
+    .step-connector.done { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); }
+
+    /* GLASS CARD */
+    .glass-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px; padding: 32px;
+      backdrop-filter: blur(12px);
+    }
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .section-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 2px dashed rgba(124,58,237,0.45);
+      border-radius: 16px;
+      padding: 60px 32px;
+      text-align: center;
+      background: rgba(124,58,237,0.04);
+    }
+    .upload-icon-wrap {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(59,130,246,0.2));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+    }
+    .upload-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .upload-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      color: white; border: none; border-radius: 10px;
+      padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: transparent; color: var(--text-secondary);
+      border: 1px solid var(--glass-border); border-radius: 10px;
+      padding: 12px 20px; font-size: 14px; cursor: pointer;
+    }
+
+    /* FILE INFO (estado após upload) */
+    .file-info {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 12px; padding: 14px 18px; margin-top: 22px;
+    }
+    .file-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .file-meta { flex: 1; }
+    .file-name { font-size: 14px; font-weight: 600; }
+    .file-size { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .file-check {
+      width: 26px; height: 26px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.35);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #10b981; font-size: 12px; font-weight: 700;
+    }
+
+    .actions {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 28px;
+    }
+
+    /* SCREEN DIVIDER */
+    .screen-divider {
+      display: flex; align-items: center; gap: 16px; margin: 52px 0 36px;
+    }
+    .screen-divider-line { flex: 1; height: 1px; background: var(--glass-border); }
+    .screen-divider-label {
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-muted); white-space: nowrap;
+    }
+
+    /* TWO COL LAYOUT */
+    .two-col { display: grid; grid-template-columns: 1fr 1.6fr; gap: 28px; }
+
+    /* CATEGORY CHIPS */
+    .col-label {
+      font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 10px;
+    }
+    .badge-req {
+      display: inline-block; font-size: 10px;
+      background: rgba(124,58,237,0.15); color: var(--accent-light);
+      padding: 2px 7px; border-radius: 4px; margin-left: 6px;
+      vertical-align: middle; letter-spacing: 0;
+    }
+    .chip-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
+    .chip {
+      padding: 7px 13px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary); cursor: pointer;
+    }
+    .chip.sel {
+      background: linear-gradient(135deg, rgba(124,58,237,0.22), rgba(59,130,246,0.22));
+      border-color: rgba(124,58,237,0.55); color: var(--accent-light);
+    }
+    .divider { height: 1px; background: var(--glass-border); margin: 18px 0; }
+
+    /* FORM */
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+    .req { color: var(--accent-purple); margin-left: 2px; }
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; color: var(--text-primary); outline: none;
+      font-family: inherit;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-textarea { resize: none; height: 82px; }
+    .ia-hint {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 11px; color: var(--text-muted); margin-top: 5px;
+    }
+    .ia-badge {
+      font-size: 10px; padding: 2px 7px; border-radius: 4px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(59,130,246,0.2));
+      border: 1px solid rgba(124,58,237,0.3); color: var(--accent-light); white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M9 7h6M9 11h4" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="17.5" cy="11" r="1.5" fill="rgba(167,139,250,0.9)"/>
+          <path d="M17.5 12.5 Q18.5 14 17.5 15.5" stroke="rgba(167,139,250,0.7)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">MI Campus IV</div>
+        <div class="logo-sub">UFPB · Materiais Instrucionais</div>
+      </div>
+    </div>
+    <div class="nav-user">
+      <div class="avatar">JS</div>
+      <span>João Silva</span>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+       TELA 1 — UPLOAD DE PDF
+  ══════════════════════════════════════════ -->
+
+  <div class="stepper">
+    <div class="step">
+      <div class="step-circle active">1</div>
+      <div class="step-label active">Upload do PDF</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-circle">2</div>
+      <div class="step-label">Categorias e Detalhes</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-circle">3</div>
+      <div class="step-label">Revisão e Envio</div>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <div class="section-title">Upload do Material Instrucional</div>
+    <div class="section-sub">Selecione ou arraste o arquivo PDF do seu material. Tamanho máximo: 50 MB.</div>
+
+    <!-- Zona de upload (estado vazio) -->
+    <div class="upload-zone">
+      <div class="upload-icon-wrap">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7c3aed"/><stop offset="1" stop-color="#3b82f6"/>
+            </linearGradient>
+          </defs>
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="url(#g1)" stroke-width="1.8" stroke-linecap="round"/>
+          <polyline points="17 8 12 3 7 8" stroke="url(#g1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="12" y1="3" x2="12" y2="15" stroke="url(#g1)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="upload-title">Arraste seu PDF aqui</div>
+      <div class="upload-sub">
+        ou clique para selecionar do seu computador<br>
+        <span style="font-size:12px;color:#64748b;">Somente arquivos .PDF</span>
+      </div>
+      <button class="btn-primary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Selecionar arquivo
+      </button>
+    </div>
+
+    <!-- Arquivo carregado (estado após seleção) -->
+    <div class="file-info">
+      <div class="file-icon">📄</div>
+      <div class="file-meta">
+        <div class="file-name">introducao-ao-calculo-diferencial.pdf</div>
+        <div class="file-size">2.4 MB · PDF · Carregado com sucesso</div>
+      </div>
+      <div class="file-check">✓</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-ghost">Cancelar</button>
+      <button class="btn-primary">
+        Próximo: Categorias e Detalhes
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── DIVISOR ── -->
+  <div class="screen-divider">
+    <div class="screen-divider-line"></div>
+    <div class="screen-divider-label">Tela 2 — Categorias e Detalhes</div>
+    <div class="screen-divider-line"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TELA 2 — CATEGORIAS + INFORMAÇÕES
+  ══════════════════════════════════════════ -->
+
+  <div class="stepper">
+    <div class="step">
+      <div class="step-circle done">✓</div>
+      <div class="step-label">Upload do PDF</div>
+    </div>
+    <div class="step-connector done"></div>
+    <div class="step">
+      <div class="step-circle active">2</div>
+      <div class="step-label active">Categorias e Detalhes</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-circle">3</div>
+      <div class="step-label">Revisão e Envio</div>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <div class="section-title">Categorias e Detalhes do Material</div>
+    <div class="section-sub">Classifique o material e preencha as informações para facilitar a busca e curadoria.</div>
+
+    <div class="two-col">
+
+      <!-- ── COLUNA ESQUERDA: CATEGORIAS ── -->
+      <div>
+        <div class="col-label">Área de Conhecimento <span class="badge-req">obrigatório</span></div>
+        <div class="chip-group">
+          <span class="chip sel">Ciências Exatas</span>
+          <span class="chip">Ciências Humanas</span>
+          <span class="chip">Ciências Biológicas</span>
+          <span class="chip">Linguagens</span>
+          <span class="chip">Computação</span>
+          <span class="chip">Engenharia</span>
+          <span class="chip">Pedagogia</span>
+          <span class="chip">Saúde</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="col-label">Disciplina / Subcategoria</div>
+        <div class="chip-group">
+          <span class="chip sel">Cálculo</span>
+          <span class="chip">Álgebra Linear</span>
+          <span class="chip">Estatística</span>
+          <span class="chip">Geometria</span>
+          <span class="chip">Física Geral</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="col-label">Nível de Ensino</div>
+        <div class="chip-group">
+          <span class="chip sel">Graduação</span>
+          <span class="chip">Pós-Graduação</span>
+          <span class="chip">Extensão</span>
+          <span class="chip">Técnico</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="col-label">Visibilidade</div>
+        <div class="chip-group">
+          <span class="chip sel">Público</span>
+          <span class="chip">Restrito à UFPB</span>
+        </div>
+      </div>
+
+      <!-- ── COLUNA DIREITA: INFORMAÇÕES ── -->
+      <div>
+        <div class="col-label">Informações do Material</div>
+
+        <div class="form-group">
+          <label class="form-label">Título do Material <span class="req">*</span></label>
+          <input class="form-input" type="text" value="Introdução ao Cálculo Diferencial" placeholder="Título completo do material instrucional"/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Autor(es) <span class="req">*</span></label>
+            <input class="form-input" type="text" value="João da Silva Santos" placeholder="Nome completo"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Matrícula / SIAPE</label>
+            <input class="form-input" type="text" placeholder="Ex: 20231234567"/>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Ano de Produção <span class="req">*</span></label>
+            <input class="form-input" type="text" value="2025" placeholder="AAAA"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Idioma</label>
+            <input class="form-input" type="text" value="Português (BR)" placeholder="Idioma principal"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Palavras-chave</label>
+          <input class="form-input" type="text" placeholder="Ex: cálculo, derivadas, limites  (separadas por vírgula)"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Resumo <span class="req">*</span></label>
+          <textarea class="form-input form-textarea" placeholder="Descreva brevemente o conteúdo deste material instrucional..."></textarea>
+          <div class="ia-hint">
+            <span class="ia-badge">✦ IA</span>
+            O resumo também será traduzido automaticamente para Inglês e Espanhol.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Voltar
+      </button>
+      <button class="btn-primary">
+        Próximo: Revisão e Envio
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div style="height: 56px;"></div>
+</div>
+</body>
+</html>

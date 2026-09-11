@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+/*
+  Tema MEC RED — paleta teal.
+  Sobrescrevemos a escala "indigo" (cor primária histórica do projeto) pela
+  escala teal inspirada no mecred.mec.gov.br. Assim todas as telas que já usam
+  `indigo-*` passam a renderizar o teal da marca, mantendo o estilo congruente
+  em todo o app sem reescrever cada classe.
+*/
+@theme {
+  --color-indigo-50:  #ecfdfe;
+  --color-indigo-100: #d0f7fa;
+  --color-indigo-200: #a6eef3;
+  --color-indigo-300: #6ee0e9;
+  --color-indigo-400: #34c9d6;
+  --color-indigo-500: #16bcc6;
+  --color-indigo-600: #0ea5b0;
+  --color-indigo-700: #0c8893;
+  --color-indigo-800: #116e77;
+  --color-indigo-900: #135a62;
+  --color-indigo-950: #063e44;
+
+  /* Cores de apoio da marca (logo multicolor estilo MEC RED) */
+  --color-brand-teal:   #16bcc6;
+  --color-brand-coral:  #f25c54;
+  --color-brand-amber:  #f6a623;
+  --color-brand-blue:   #2f80ed;
+}
+
+/* Fundo sutil das telas internas, evocando o padrão claro do MEC RED */
+body {
+  background-color: #f3f5f7;
+}
+.dark body {
+  background-color: #030712;
+}

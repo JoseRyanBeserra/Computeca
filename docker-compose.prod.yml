@@ -1,0 +1,109 @@
+services:
+
+  # ── API (imagem gerada pelo CI/CD) ────────────────────────────────────────────
+  app:
+    image: ghcr.io/des-sist-corp-ufpb/projeto-eq15:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8115:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+
+      # ── Auth / Admin — definir no portal ──────────────────────────────────────
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      # ── Database ───────────────────────────────────────────────────────────────
+      DATABASE_URL: ${DATABASE_URL:-postgresql://eq15:63by1XpT9qZliNdQiB3Z@postgres:5432/eq15}
+
+      # ── MinIO (interno — operações de leitura/escrita no bucket) ──────────────
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-eq15}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-jnR1KLVogOewyJis2oU0Yrg4}
+      MINIO_BUCKET: ${MINIO_BUCKET:-eq15}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+
+      # ── MinIO (público — URLs pré-assinadas acessíveis pelo browser) ───────────
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-s3.dsc.rodrigor.com}
+      MINIO_PUBLIC_USE_SSL: ${MINIO_PUBLIC_USE_SSL:-true}
+
+      # ── Redis (BullMQ — jobs de vetorização) ──────────────────────────────────
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+
+      # ── Qdrant (banco de vetores — RAG) ───────────────────────────────────────
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+
+      # ── OpenAI (embeddings e geração de respostas) ────────────────────────────
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+      # ── Frontend URL (links de e-mail) ─────────────────────────────────────────
+      APP_URL: ${APP_URL:-https://eq15.dsc.rodrigor.com}
+
+      # ── OpenTelemetry (observabilidade) ───────────────────────────────────────
+      # Todos os valores vêm do .env do portal — nenhum é definido aqui.
+      # Declarar as variáveis neste bloco é obrigatório: o compose só repassa
+      # para dentro do container o que está declarado, então defini-las apenas
+      # no portal não faz efeito nenhum.
+      # Sem OTEL_EXPORTER_OTLP_ENDPOINT, o start.sh não carrega o SDK.
+      OTEL_SERVICE_NAME:            ${OTEL_SERVICE_NAME:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT:  ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL:  ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_EXPORTER_OTLP_HEADERS:   ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_TRACES_EXPORTER:         ${OTEL_TRACES_EXPORTER:-otlp}
+      OTEL_METRICS_EXPORTER:        ${OTEL_METRICS_EXPORTER:-otlp}
+      OTEL_LOGS_EXPORTER:           ${OTEL_LOGS_EXPORTER:-otlp}
+      # A ordem importa — o último vence. `env` por último, senão o detector
+      # `process` sobrescreve o service.name com "unknown_service:node".
+      # Detectores de nuvem omitidos: travam o boot tentando alcançar
+      # metadata.google.internal / 169.254.169.254 até dar timeout.
+      OTEL_NODE_RESOURCE_DETECTORS: ${OTEL_NODE_RESOURCE_DETECTORS:-host,os,process,serviceinstance,container,env}
+      OTEL_RESOURCE_ATTRIBUTES:     ${OTEL_RESOURCE_ATTRIBUTES:-deployment.environment=production}
+
+  # ── Redis (BullMQ — jobs de vetorização assíncrona) ───────────────────────────
+  # Gerenciado pelo docker-compose — não precisa ser configurado no portal.
+  # Dados persistidos no volume redis_data.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Qdrant (banco de vetores — RAG) ───────────────────────────────────────────
+  # Gerenciado pelo docker-compose — não precisa ser configurado no portal.
+  # Dados persistidos no volume qdrant_data.
+  qdrant:
+    image: qdrant/qdrant:v1.13.6
+    restart: unless-stopped
+    expose:
+      - "6333"
+      - "6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:6333/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  redis_data:
+  qdrant_data:

@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  COMMON
+  INSTITUTIONALIZED
+  PROFESSOR
+  ADMIN
+}
+
+enum InspectionLogDirection {
+  CLIENT_TO_SERVER
+  SERVER_TO_CLIENT
+}
+
+enum OrgMemberRole {
+  ADMIN
+  PROFESSOR
+  MEMBER
+}
+
+enum OrgStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(COMMON)
+  canUpload     Boolean  @default(false)
+  emailVerified Boolean  @default(false)
+  suspended     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  refreshTokens           RefreshToken[]
+  auditLogs               AuditLog[]            @relation("AuditActor")
+  materiaisInstrucionais  MaterialInstrucional[]
+  emailVerificationTokens EmailVerificationToken[]
+  orgCreated              Organization[]         @relation("OrgCreator")
+  orgMemberships          OrganizationMember[]   @relation("OrgMemberships")
+  invitesReceived         OrganizationInvite[]   @relation("InvitesReceived")
+  invitesSent             OrganizationInvite[]   @relation("InvitesSent")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actorRole Role?
+  targetId  String?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id])
+}
+
+// ── Materiais Instrucionais ────────────────────────────────────────────────────
+
+enum MIStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum VectorStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+// Estado da geração do resumo por IA. Gerado sob demanda na primeira visita e
+// cacheado no próprio material — as visitas seguintes leem o resumo pronto.
+enum SummaryStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+model MaterialInstrucional {
+  id                 String        @id @default(uuid())
+  title              String
+  originalFileName   String
+  storageKey         String        @unique
+  mimeType           String
+  sizeBytes          Int
+  habilidadesBncc    String[]      @default([]) // códigos/nomes de habilidades da BNCC associadas ao material
+  status             MIStatus      @default(PENDING_REVIEW)
+  vectorStatus       VectorStatus  @default(PENDING)
+  summary            String? // resumo gerado por IA (null até a primeira geração)
+  summaryStatus      SummaryStatus @default(PENDING)
+  summaryGeneratedAt DateTime? // quando o resumo em cache foi produzido
+  deletedAt          DateTime? // soft delete: quando preenchido, o material fica oculto em todas as listagens
+  deletedById        String? // quem realizou o soft delete (PROFESSOR/ADMIN)
+  uploadedById       String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  uploadedBy    User                               @relation(fields: [uploadedById], references: [id])
+  organizations MaterialInstrucionalOrganization[]
+
+  @@index([uploadedById])
+  @@index([status])
+  @@index([vectorStatus])
+  @@index([deletedAt])
+}
+
+// ── Organizações ──────────────────────────────────────────────────────────────
+
+model Organization {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  status      OrgStatus @default(ACTIVE)
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy User @relation("OrgCreator", fields: [createdById], references: [id])
+  members   OrganizationMember[]
+  invites   OrganizationInvite[]
+  materials MaterialInstrucionalOrganization[]
+
+  @@index([createdById])
+}
+
+model OrganizationMember {
+  id             String        @id @default(uuid())
+  organizationId String
+  userId         String
+  role           OrgMemberRole
+  joinedAt       DateTime      @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("OrgMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model OrganizationInvite {
+  id             String       @id @default(uuid())
+  organizationId String
+  invitedUserId  String
+  invitedById    String
+  status         InviteStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  respondedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedUser  User         @relation("InvitesReceived", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InvitesSent",     fields: [invitedById],  references: [id])
+
+  @@index([invitedUserId])
+  @@index([organizationId])
+}
+
+model MaterialInstrucionalOrganization {
+  materialId     String
+  organizationId String
+
+  material     MaterialInstrucional @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([materialId, organizationId])
+}
+
+// ── Observabilidade ───────────────────────────────────────────────────────────
+
+model InspectionLog {
+  id            String                 @id @default(uuid())
+  correlationId String?
+  context       String
+  direction     InspectionLogDirection
+  tag           String?
+  payload       Json?
+  createdAt     DateTime               @default(now())
+
+  @@index([correlationId])
+  @@index([tag])
+}

@@ -1,0 +1,96 @@
+# docker-compose.yml — dependências de infraestrutura para desenvolvimento local
+#
+# Pré-requisito: crie o arquivo .env na raiz de MI-server/ com as variáveis da aplicação.
+#
+# Subir infra:       docker compose up -d
+# Parar infra:       docker compose down
+# Console MinIO:     http://localhost:9001  (minioadmin / minioadmin)
+# Rodar migrations:  npx prisma migrate dev
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: mi-postgres
+    environment:
+      POSTGRES_DB:       mi_db
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mi_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── MinIO (armazenamento de PDFs) ───────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: mi-minio
+    environment:
+      MINIO_ROOT_USER:     minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"   # S3 API  →  usado pela aplicação
+      - "9001:9001"   # Console web  →  http://localhost:9001
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  # ── Redis (jobs assíncronos / BullMQ) ───────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: mi-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # ── Qdrant (banco de vetores para RAG) ─────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: mi-qdrant
+    ports:
+      - "6333:6333"   # REST API  →  usado pela aplicação
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  # ── Grafana OTel LGTM (traces, métricas e logs via OpenTelemetry) ───────────
+  # Imagem all-in-one: Collector OTLP + Tempo + Loki + Prometheus + Grafana.
+  # Datasources já vêm provisionados. Login: admin / admin.
+  otel-lgtm:
+    image: grafana/otel-lgtm
+    container_name: otel-lgtm
+    ports:
+      - "3000:3000"   # Grafana (interface web)  →  http://localhost:3000
+      - "4317:4317"   # OTLP via gRPC
+      - "4318:4318"   # OTLP via HTTP  →  usado pela aplicação
+    volumes:
+      - lgtm_data:/data
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  minio_data:
+  qdrant_data:
+  lgtm_data:

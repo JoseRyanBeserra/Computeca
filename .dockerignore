@@ -1,0 +1,17 @@
+.git
+docs
+*.md
+
+# Backend — exclui o que não vai para a imagem
+MI-server/node_modules
+MI-server/dist
+MI-server/.env
+MI-server/.env.test
+MI-server/coverage
+MI-server/__tests__
+
+# Frontend — exclui o que não vai para a imagem
+front/node_modules
+front/dist
+front/.env.local
+front/.env.*.local
