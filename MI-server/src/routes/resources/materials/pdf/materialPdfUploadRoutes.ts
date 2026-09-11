@@ -16,6 +16,7 @@ import { materialPdfReviewPresignedUrlController } from '../../../../controllers
 import { materialPdfReviewController } from '../../../../controllers/resources/materials/pdf/materialPdfReviewController'
 import { materialPdfChatController } from '../../../../controllers/resources/materials/pdf/materialPdfChatController'
 import { materialPdfSummaryController } from '../../../../controllers/resources/materials/pdf/materialPdfSummaryController'
+import { materialPdfEditController } from '../../../../controllers/resources/materials/pdf/materialPdfEditController'
 import { materialPdfDeleteController } from '../../../../controllers/resources/materials/pdf/materialPdfDeleteController'
 import { env } from '../../../../env'
 
@@ -165,6 +166,19 @@ export async function materialPdfUploadRoutes(app: FastifyInstance): Promise<voi
     '/:id/chat',
     { preHandler: [authenticate, requireAiEnabled] },
     materialPdfChatController,
+  )
+
+  /**
+   * PUT /mis/:id
+   * Edita os metadados de um material e, opcionalmente, substitui o documento.
+   * Corpo: multipart/form-data com o conjunto COMPLETO dos metadados editáveis.
+   *
+   * Permissão: ADMIN, e somente ele — nem PROFESSOR nem o autor do material.
+   */
+  app.put(
+    '/:id',
+    { preHandler: [authenticate] },
+    materialPdfEditController,
   )
 
   /**

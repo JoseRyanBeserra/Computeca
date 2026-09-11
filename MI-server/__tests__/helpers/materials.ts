@@ -38,6 +38,8 @@ export async function createUserAndLogin(
 interface CreateMaterialOpts {
   uploadedById:     string
   title?:           string
+  /** `null` reproduz o material anterior à exigência de descrição. */
+  description?:     string | null
   status?:          'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
   habilidadesBncc?: string[]
 }
@@ -47,6 +49,7 @@ export async function createMaterial(opts: CreateMaterialOpts) {
   return prisma.materialInstrucional.create({
     data: {
       title:            opts.title ?? 'Material de Teste',
+      description:      opts.description === undefined ? 'd'.repeat(60) : opts.description,
       originalFileName: 'arquivo.pdf',
       storageKey:       `key-${randomUUID()}`,
       mimeType:         'application/pdf',

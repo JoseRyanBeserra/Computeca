@@ -9,6 +9,7 @@ import { HomePage } from '../pages/HomePage'
 import { UploadPage } from '../pages/UploadPage'
 import { MaterialsPage } from '../pages/MaterialsPage'
 import { MaterialDetailPage } from '../pages/MaterialDetailPage'
+import { MaterialEditPage } from '../pages/MaterialEditPage'
 import { AdminDashboardPage } from '../pages/AdminDashboardPage'
 import { AdminUsersPage } from '../pages/AdminUsersPage'
 import { AdminLogsPage } from '../pages/AdminLogsPage'
@@ -101,6 +102,17 @@ export function Router() {
 
         {/* Detalhe de um material específico — o acesso é validado pela API */}
         <Route path="/materials/:id" element={<MaterialDetailPage />} />
+
+        {/* Edição de material — exclusiva do ADMIN. O servidor recusa os demais
+            perfis de todo jeito; o guard evita a tela abrir para quem não pode. */}
+        <Route
+          path="/materials/:id/edit"
+          element={
+            <AdminRoute>
+              <MaterialEditPage />
+            </AdminRoute>
+          }
+        />
 
         {/* Submissão — login + permissão (@dcx.ufpb.br ou ADMIN) */}
         <Route

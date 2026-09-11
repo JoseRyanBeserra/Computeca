@@ -53,6 +53,45 @@ export async function uploadMaterialRequest(payload: UploadMaterialPayload): Pro
   return data
 }
 
+export interface EditMaterialPayload {
+  title: string
+  /** Obrigatória: 50 a 2000 caracteres, validado também no servidor */
+  description: string
+  habilidadesBncc?: string[]
+  /** Ausente = manter o documento atual. Presente = substituir, e o antigo é apagado. */
+  file?: File
+}
+
+/**
+ * Edita um material existente. Restrito a ADMIN no servidor.
+ *
+ * Título e descrição seguem SEMPRE, mesmo quando não mudaram: o servidor exige o
+ * conjunto completo dos metadados editáveis, e é isso que impede uma descrição
+ * inválida de atravessar a edição sem ser conferida.
+ *
+ * `file` segue apenas quando há documento novo — sua ausência é o que diz ao
+ * servidor "mantenha o documento atual".
+ */
+export async function editMaterialRequest(
+  materialId: string,
+  payload: EditMaterialPayload,
+): Promise<UploadedMI> {
+  const formData = new FormData()
+  formData.append('title', payload.title.trim())
+  formData.append('description', payload.description.trim())
+  if (payload.habilidadesBncc?.length) {
+    for (const habilidade of payload.habilidadesBncc) {
+      formData.append('habilidadesBncc', habilidade)
+    }
+  }
+  if (payload.file) formData.append('file', payload.file)
+
+  const { data } = await api.put<UploadedMI>(`/mis/${materialId}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
 export async function listMyMaterialsRequest(): Promise<UploadedMI[]> {
   const { data } = await api.get<UploadedMI[]>('/mis/me')
   return data

@@ -1,0 +1,42 @@
+// src/services/resources/materials/pdf/materialPdfEditService.ts
+//
+// Edição de um Material Instrucional já cadastrado. Restrito a ADMIN — a
+// autorização é aplicada no controller (Princípio II).
+import type { Role } from '@prisma/client'
+import type { EditMIInput, IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import { findMaterialById } from '../../../../repositories/resources/materials/pdf/materialPdfViewRepository'
+import { validateRequest } from '../../../../utils/validateRequest'
+import { materialPdfEditSchema } from '../../../../schemas/resources/materials/pdf/materialPdfEditSchema'
+import { ERRORS, buildError } from '../../../../lib/errors/errors'
+import { GeneralErrorResponse } from '../../../../errors/GeneralErrorResponse'
+import { StatusCode } from '../../../../utils/statusCode'
+import { logger } from '../../../../lib/logger'
+
+export interface MaterialPdfEditServiceArgs extends EditMIInput {
+  actorRole: Role
+}
+
+export async function materialPdfEditService(
+  input: MaterialPdfEditServiceArgs,
+): Promise<IUploadedMI> {
+  logger.info('IN - materialPdfEditService')
+
+  // Validação na fronteira do service (Princípio I). O ZodError resultante vira
+  // 422 no errorHandler global. Validar aqui — e não só no controller — recusa
+  // também a chamada interna inválida.
+  const { materialId } = validateRequest(input, materialPdfEditSchema)
+
+  // findMaterialById já filtra `deletedAt` — o 404 cobre "não existe" e
+  // "removido do acervo" de uma vez (FR-015). Editar material retirado o
+  // reintroduziria pela porta dos fundos.
+  const material = await findMaterialById(materialId)
+  if (!material) {
+    throw new GeneralErrorResponse(
+      StatusCode.NOT_FOUND,
+      buildError(ERRORS.ERRORS_RESOURCES.MI_NOT_FOUND),
+    )
+  }
+
+  logger.info({ materialId }, 'OUT - materialPdfEditService')
+  return material
+}

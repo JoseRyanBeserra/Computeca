@@ -1,5 +1,10 @@
 // src/services/resources/materials/pdf/materialPdfUploadService.ts
-import { randomUUID } from 'node:crypto'
+import {
+  ALLOWED_MIME_TYPE,
+  assertAllowedMimeType,
+  buildStorageKey,
+  validatePDFBuffer,
+} from '../../../../utils/materialFile'
 import { z } from 'zod'
 import { minioClient, MINIO_BUCKET } from '../../../../lib/minio'
 import { findUserById } from '../../../../repositories/users/usersRepository'
@@ -15,13 +20,6 @@ import { logger } from '../../../../lib/logger'
 import type { UploadMIInput, IUploadedMI } from '../../../../@types/resources/materials/pdf'
 import { materialPdfUploadSchema } from '../../../../schemas/resources/materials/pdf/materialPdfUploadSchema'
 import { validateRequest } from '../../../../utils/validateRequest'
-
-// ── Constantes de validação ────────────────────────────────────────────────────
-
-/** Magic bytes do PDF: %PDF (0x25 0x50 0x44 0x46) */
-const PDF_MAGIC = Buffer.from([0x25, 0x50, 0x44, 0x46])
-
-const ALLOWED_MIME_TYPE = 'application/pdf'
 
 /**
  * Habilidades BNCC são OPCIONAIS: a lista sempre existe, mas pode ser vazia.
@@ -65,9 +63,7 @@ export async function materialPdfUploadService(input: UploadMIInput): Promise<IU
       'mi.organizacoes_vinculadas': organizationIds.length,
     },
     async (spanUpload) => {
-      if (mimeType !== ALLOWED_MIME_TYPE) {
-        throw new GeneralErrorResponse(StatusCode.UNSUPPORTED_MEDIA_TYPE, buildError(ERRORS.ERRORS_RESOURCES.INVALID_FILE_TYPE))
-      }
+      assertAllowedMimeType(mimeType)
 
       const uploader = await findUserById(uploadedById)
       if (!uploader) {
@@ -79,8 +75,7 @@ export async function materialPdfUploadService(input: UploadMIInput): Promise<IU
         validatePDFBuffer(buffer)
       })
 
-      const sanitizedName = sanitizeForStorageKey(uploader.name)
-      const storageKey = `${sanitizedName}_${uploadedById}_${randomUUID()}.pdf`
+      const storageKey = buildStorageKey(uploader.name, uploadedById)
       spanUpload.setAttribute('mi.storage_key', storageKey)
 
       // Escrita no object storage — costuma ser a etapa mais cara do fluxo.
@@ -153,40 +148,4 @@ export async function materialPdfUploadService(input: UploadMIInput): Promise<IU
       return mi
     },
   )
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function maxFileSizeBytes(): number {
-  return env.MI_MAX_FILE_SIZE_MB * 1024 * 1024
-}
-
-/**
- * Sanitiza o nome do usuário para ser usado como parte da chave MinIO.
- * Remove acentos, substitui espaços e caracteres especiais por hífen.
- */
-function sanitizeForStorageKey(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-/**
- * Valida que o buffer é um PDF legítimo:
- *  1. Verifica os magic bytes (%PDF) — defesa contra MIME spoofing
- *  2. Verifica que o tamanho não excede o limite configurado
- */
-function validatePDFBuffer(buffer: Buffer): void {
-  if (buffer.length > maxFileSizeBytes()) {
-    throw new GeneralErrorResponse(StatusCode.PAYLOAD_TOO_LARGE, buildError(ERRORS.ERRORS_RESOURCES.FILE_TOO_LARGE))
-  }
-
-  const magic = buffer.subarray(0, 4)
-  if (!magic.equals(PDF_MAGIC)) {
-    throw new GeneralErrorResponse(StatusCode.UNSUPPORTED_MEDIA_TYPE, buildError(ERRORS.ERRORS_RESOURCES.INVALID_FILE_TYPE))
-  }
 }
