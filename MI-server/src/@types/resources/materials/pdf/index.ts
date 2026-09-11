@@ -4,6 +4,8 @@ import type { MIStatus, VectorStatus } from '@prisma/client'
 /** Payload interno passado do controller para o service */
 export interface UploadMIInput {
   title: string
+  /** Descrição do material — obrigatória no cadastro, 50 a 2000 caracteres */
+  description: string
   buffer: Buffer
   originalFileName: string
   mimeType: string
@@ -23,6 +25,8 @@ export interface IMaterialPresignedUrl {
 export interface IPendingMaterial {
   id: string
   title: string
+  /** `null` quando o material foi cadastrado antes da exigência de descrição */
+  description?: string | null
   originalFileName: string
   storageKey: string
   mimeType: string
@@ -70,6 +74,8 @@ export interface IMaterialSummaryResponse {
 export interface IUploadedMI {
   id: string
   title: string
+  /** `null` quando o material foi cadastrado antes da exigência de descrição */
+  description?: string | null
   originalFileName: string
   storageKey: string
   mimeType: string

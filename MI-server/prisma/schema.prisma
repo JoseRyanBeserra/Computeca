@@ -122,6 +122,9 @@ model MaterialInstrucional {
   storageKey         String        @unique
   mimeType           String
   sizeBytes          Int
+  description        String? // descrição do material. Nullable por causa do acervo anterior à
+                             // exigência — null significa "cadastrado antes da regra", não vazio.
+                             // Cadastros novos exigem 50 a 2000 caracteres, imposto no schema de entrada.
   habilidadesBncc    String[]      @default([]) // códigos/nomes de habilidades da BNCC associadas ao material
   status             MIStatus      @default(PENDING_REVIEW)
   vectorStatus       VectorStatus  @default(PENDING)

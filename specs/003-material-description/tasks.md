@@ -29,9 +29,9 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 **Purpose**: o campo existir. Tudo depende disto.
 
-- [ ] T001 Acrescentar `description String?` ao model `MaterialInstrucional` em `MI-server/prisma/schema.prisma`. **Nullable é deliberado**: os materiais já cadastrados ficam com `null`, que significa "anterior à exigência". Uma coluna `NOT NULL` exigiria valor padrão, e qualquer padrão seria descrição inventada
-- [ ] T002 Gerar a migração aditiva com `npx prisma migrate dev --name add_material_description` em `MI-server/`, confirmando que nenhuma linha existente é lida ou reescrita (depende de T001)
-- [ ] T003 [P] Acrescentar `description?: string | null` a `IPendingMaterial` e `IUploadedMI`, e `description: string` (**não opcional**) a `UploadMIInput`, em `MI-server/src/@types/resources/materials/pdf/index.ts` — nesse ponto do fluxo a descrição já é obrigatória
+- [X] T001 Acrescentar `description String?` ao model `MaterialInstrucional` em `MI-server/prisma/schema.prisma`. **Nullable é deliberado**: os materiais já cadastrados ficam com `null`, que significa "anterior à exigência". Uma coluna `NOT NULL` exigiria valor padrão, e qualquer padrão seria descrição inventada
+- [X] T002 Gerar a migração aditiva com `npx prisma migrate dev --name add_material_description` em `MI-server/`, confirmando que nenhuma linha existente é lida ou reescrita (depende de T001)
+- [X] T003 [P] Acrescentar `description?: string | null` a `IPendingMaterial` e `IUploadedMI`, e `description: string` (**não opcional**) a `UploadMIInput`, em `MI-server/src/@types/resources/materials/pdf/index.ts` — nesse ponto do fluxo a descrição já é obrigatória
 
 ---
 
@@ -41,18 +41,18 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 **⚠️ CRITICAL**: nenhuma história pode começar antes desta fase terminar.
 
-- [ ] T004 Criar `MI-server/src/schemas/resources/materials/pdf/materialPdfUploadSchema.ts` exportando `UploadMaterialBodySchema`, o tipo `UploadMaterialRequest`, o schema de service `materialPdfUploadSchema` (com `uploadedById`) e o tipo `UploadMaterialServiceInput`. A descrição é `z.string().trim().min(50).max(2000)` — **limites inclusivos**, contagem **após remover espaços das extremidades**, conforme FR-005. O **título passa a ser obrigatório** (FR-011): `z.string().trim().min(1).max(255)` — o servidor deixa de recorrer ao nome do arquivo, e `resolveTitle` é removido dos dois controllers. Inclui também habilidades, pagando a dívida do Princípio I: o upload é o único fluxo do projeto sem schema próprio
-- [ ] T005 Criar `MI-server/src/controllers/resources/materials/pdf/shared/parseMaterialMultipart.ts` com o percurso de `request.parts()` extraído de `materialPdfUploadController`, acrescentando a leitura do campo `description`. Retorna também `organizationIds`, para servir aos dois controllers
-- [ ] T006 Fazer `MI-server/src/services/resources/materials/pdf/materialPdfUploadService.ts` validar a entrada com `validateRequest(input, materialPdfUploadSchema)` como primeira instrução, substituindo o schema inline de habilidades — conforme o Princípio I (depende de T004)
-- [ ] T007 Persistir a descrição em `MI-server/src/repositories/resources/materials/pdf/materialPdfUploadRepository.ts`, acrescentando `description: input.description` ao `data` de `createMaterialPdf` (depende de T001, T003)
-- [ ] T008 [P] Acrescentar `description: true` ao select de `MI-server/src/repositories/resources/materials/pdf/materialPdfViewRepository.ts` — é a rota que a tela de detalhes consome (depende de T001)
-- [ ] T009 [P] Acrescentar `description: true` ao select de `MI-server/src/repositories/resources/materials/pdf/materialPdfAllListRepository.ts` (depende de T001)
-- [ ] T010 [P] Acrescentar `description: true` ao select de `MI-server/src/repositories/resources/materials/pdf/materialPdfPendingListRepository.ts` (depende de T001)
-- [ ] T011 [P] Teste unitário em `MI-server/__tests__/unit/materials/materialPdfUploadSchema.test.ts` cobrindo os limites: **49 rejeitado, exatamente 50 aceito, exatamente 2000 aceito, 2001 rejeitado**, ausência rejeitada, string vazia rejeitada, string só de espaços rejeitada, e descrição válida cercada de espaços **aceita com o valor já sem os espaços das pontas** (depende de T004)
-- [ ] T012 [P] Teste unitário em `MI-server/__tests__/unit/materials/parseMaterialMultipart.test.ts` confirmando que o campo `description` é lido do formulário e que os demais campos seguem sendo lidos como antes (depende de T005)
+- [X] T004 Criar `MI-server/src/schemas/resources/materials/pdf/materialPdfUploadSchema.ts` exportando `UploadMaterialBodySchema`, o tipo `UploadMaterialRequest`, o schema de service `materialPdfUploadSchema` (com `uploadedById`) e o tipo `UploadMaterialServiceInput`. A descrição é `z.string().trim().min(50).max(2000)` — **limites inclusivos**, contagem **após remover espaços das extremidades**, conforme FR-005. O **título passa a ser obrigatório** (FR-011): `z.string().trim().min(1).max(255)` — o servidor deixa de recorrer ao nome do arquivo, e `resolveTitle` é removido dos dois controllers. Inclui também habilidades, pagando a dívida do Princípio I: o upload é o único fluxo do projeto sem schema próprio
+- [X] T005 Criar `MI-server/src/controllers/resources/materials/pdf/shared/parseMaterialMultipart.ts` com o percurso de `request.parts()` extraído de `materialPdfUploadController`, acrescentando a leitura do campo `description`. Retorna também `organizationIds`, para servir aos dois controllers
+- [X] T006 Fazer `MI-server/src/services/resources/materials/pdf/materialPdfUploadService.ts` validar a entrada com `validateRequest(input, materialPdfUploadSchema)` como primeira instrução, substituindo o schema inline de habilidades — conforme o Princípio I (depende de T004)
+- [X] T007 Persistir a descrição em `MI-server/src/repositories/resources/materials/pdf/materialPdfUploadRepository.ts`, acrescentando `description: input.description` ao `data` de `createMaterialPdf` (depende de T001, T003)
+- [X] T008 [P] Acrescentar `description: true` ao select de `MI-server/src/repositories/resources/materials/pdf/materialPdfViewRepository.ts` — é a rota que a tela de detalhes consome (depende de T001)
+- [X] T009 [P] Acrescentar `description: true` ao select de `MI-server/src/repositories/resources/materials/pdf/materialPdfAllListRepository.ts` (depende de T001)
+- [X] T010 [P] Acrescentar `description: true` ao select de `MI-server/src/repositories/resources/materials/pdf/materialPdfPendingListRepository.ts` (depende de T001)
+- [X] T011 [P] Teste unitário em `MI-server/__tests__/unit/materials/materialPdfUploadSchema.test.ts` cobrindo os limites: **49 rejeitado, exatamente 50 aceito, exatamente 2000 aceito, 2001 rejeitado**, ausência rejeitada, string vazia rejeitada, string só de espaços rejeitada, e descrição válida cercada de espaços **aceita com o valor já sem os espaços das pontas** (depende de T004)
+- [X] T012 [P] Teste unitário em `MI-server/__tests__/unit/materials/parseMaterialMultipart.test.ts` confirmando que o campo `description` é lido do formulário e que os demais campos seguem sendo lidos como antes (depende de T005)
 
-- [ ] T013 Atualizar o helper `uploadMaterial` em `MI-server/__tests__/integration/materials/materialUpload.test.ts` para enviar `description` válida (>= 50 caracteres) e `title`, e conferir os **8 casos** daquele arquivo. **Sem esta tarefa a suíte fica vermelha assim que a T006 entrar** — não é regressão, é o contrato de entrada mudando de propósito (depende de T006)
-- [ ] T014 Atualizar os envios de material em `MI-server/__tests__/integration/organizations/orgMaterials.test.ts` para incluir `description` e `title` válidos, pelo mesmo motivo da T013 (depende de T006)
+- [X] T013 Atualizar o helper `uploadMaterial` em `MI-server/__tests__/integration/materials/materialUpload.test.ts` para enviar `description` válida (>= 50 caracteres) e `title`, e conferir os **8 casos** daquele arquivo. **Sem esta tarefa a suíte fica vermelha assim que a T006 entrar** — não é regressão, é o contrato de entrada mudando de propósito (depende de T006)
+- [X] T014 Atualizar os envios de material em `MI-server/__tests__/integration/organizations/orgMaterials.test.ts` para incluir `description` e `title` válidos, pelo mesmo motivo da T013 (depende de T006)
 
 **Checkpoint**: a regra existe em um único lugar, o parse é compartilhado e a suíte existente segue verde.
 
@@ -98,8 +98,8 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Fazer `MI-server/src/controllers/resources/materials/pdf/materialPdfUploadController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` (depende de T005)
-- [ ] T029 [US2] Acrescentar a área de texto de descrição a `front/src/pages/UploadPage.tsx`, obrigatória, com `maxLength` de 2000 e contador ao vivo mostrando quanto falta para 50 ou quanto excede 2000 (depende de T019)
+- [X] T028 [US2] Fazer `MI-server/src/controllers/resources/materials/pdf/materialPdfUploadController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` (depende de T005)
+- [X] T029 [US2] Acrescentar a área de texto de descrição a `front/src/pages/UploadPage.tsx`, obrigatória, com `maxLength` de 2000 e contador ao vivo mostrando quanto falta para 50 ou quanto excede 2000 (depende de T019)
 - [ ] T030 [US2] Bloquear o envio em `front/src/pages/UploadPage.tsx` enquanto a descrição estiver fora dos limites, seguindo o padrão já usado pelo campo de título (depende de T029)
 - [ ] T031 [US2] Enviar `description` no `FormData` de `uploadMaterialRequest` em `front/src/features/materials/api/materialsApi.ts` (depende de T019)
 
@@ -116,11 +116,11 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 ### Tests for User Story 3
 
 - [ ] T032 [P] [US3] Teste de integração em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` cobrindo `POST /organizations/:orgId/mis` com os mesmos seis casos da T022 — **a regra não pode depender do caminho**
-- [ ] T033 [P] [US3] Teste em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` confirmando que a descrição é persistida no material vinculado à organização
+- [X] T033 [P] [US3] Teste em `MI-server/__tests__/integration/organizations/orgMaterialDescription.test.ts` confirmando que a descrição é persistida no material vinculado à organização
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Fazer `MI-server/src/controllers/organizations/materials/uploadOrgMaterialController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` — é o que torna a garantia **estrutural** em vez de depender de alguém lembrar de alterar os dois controllers (depende de T005)
+- [X] T034 [US3] Fazer `MI-server/src/controllers/organizations/materials/uploadOrgMaterialController.ts` usar `parseMaterialMultipart` e repassar `description` ao service, removendo o laço próprio de `request.parts()` — é o que torna a garantia **estrutural** em vez de depender de alguém lembrar de alterar os dois controllers (depende de T005)
 
 **Checkpoint**: não há porta lateral por onde entre material sem descrição.
 
@@ -132,7 +132,7 @@ Feature nas duas pontas: `MI-server/` (API) e `front/` (SPA).
 - [ ] T036 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-005)
 - [ ] T037 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-005)
 - [ ] T038 Confirmar no banco que a migração preservou o acervo: `select count(*) total, count(description) com_descricao from "MaterialInstrucional";` deve mostrar `com_descricao = 0` e `total` inalterado (SC-003)
-- [ ] T039 Percorrer os 7 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo as chamadas diretas por `curl` que provam que a exigência não depende da interface
+- [X] T039 Percorrer os 7 cenários de [quickstart.md](./quickstart.md) no ambiente real, incluindo as chamadas diretas por `curl` que provam que a exigência não depende da interface
 
 ---
 

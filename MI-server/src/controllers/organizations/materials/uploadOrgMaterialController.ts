@@ -8,22 +8,17 @@ import { ERRORS, buildError } from '../../../lib/errors/errors'
 import { GeneralErrorResponse } from '../../../errors/GeneralErrorResponse'
 import { logger } from '../../../lib/logger'
 
-const ctx = 'uploadOrgMaterialController'
+import { parseMaterialMultipart } from '../../resources/materials/pdf/shared/parseMaterialMultipart'
 
-async function collectBuffer(stream: AsyncIterable<Buffer>): Promise<Buffer> {
-  const chunks: Buffer[] = []
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
-  }
-  return Buffer.concat(chunks)
-}
+const ctx = 'uploadOrgMaterialController'
 
 /**
  * POST /organizations/:orgId/mis
  *
  * Aceita `multipart/form-data` com:
  *   - file  : arquivo PDF (obrigatório, campo "file")
- *   - title : título do material (opcional — padrão: nome do arquivo sem extensão)
+ *   - title       : título do material (OBRIGATÓRIO, até 255 caracteres)
+ *   - description : descrição do material (OBRIGATÓRIA, 50 a 2000 caracteres)
  *
  * O orgId vem do parâmetro de rota e é vinculado automaticamente ao MI.
  */
@@ -38,26 +33,11 @@ export async function uploadOrgMaterialController(
 
     await requireMembership(orgId, request.user.sub)
 
-    let fileBuffer:       Buffer | null = null
-    let originalFileName: string | null = null
-    let mimeType:         string | null = null
-    let title:            string | undefined
-
-    for await (const part of request.parts()) {
-      if (part.type === 'field') {
-        if (part.fieldname === 'title') {
-          title = String(part.value).trim()
-        }
-      } else {
-        if (part.fieldname === 'file') {
-          originalFileName = part.filename ?? null
-          mimeType         = part.mimetype
-          fileBuffer       = await collectBuffer(part.file)
-        } else {
-          part.file.resume()
-        }
-      }
-    }
+    // Parse compartilhado com POST /mis: é o que garante que os dois caminhos
+    // de cadastro nunca divirjam nos campos exigidos. Como efeito colateral,
+    // esta rota passa a aceitar habilidades BNCC, que o laço próprio ignorava.
+    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc } =
+      await parseMaterialMultipart(request)
 
     if (!fileBuffer || !originalFileName || !mimeType) {
       throw new GeneralErrorResponse(
@@ -66,15 +46,15 @@ export async function uploadOrgMaterialController(
       )
     }
 
-    const resolvedTitle = title?.length
-      ? title
-      : originalFileName.replace(/\.pdf$/i, '').trim() || originalFileName
-
     const mi = await materialPdfUploadService({
-      title:           resolvedTitle,
+      // Título e descrição vêm de quem cadastra; o servidor não adivinha mais o
+      // título a partir do nome do arquivo. O schema do service recusa com 422.
+      title:           title as string,
+      description:     description as string,
       buffer:          fileBuffer,
       originalFileName,
       mimeType,
+      habilidadesBncc,
       uploadedById:    request.user.sub,
       organizationIds: [orgId],
     })

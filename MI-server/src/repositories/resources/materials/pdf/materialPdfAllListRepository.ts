@@ -25,6 +25,7 @@ export interface AllMaterialsResult {
 const MI_SELECT = {
   id:               true,
   title:            true,
+  description:      true,
   originalFileName: true,
   storageKey:       true,
   mimeType:         true,

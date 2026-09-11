@@ -85,6 +85,11 @@ describe('POST /organizations/:orgId/mis — upload vinculado à org', () => {
     const form = new FormData()
     form.append('file', PDF_BUFFER, { filename: 'org.pdf', contentType: 'application/pdf' })
     form.append('title', 'Material da Org')
+    // Desde a feature 003 a descrição é obrigatória também nesta rota.
+    form.append(
+      'description',
+      'Material instrucional vinculado a uma organização, com atividades para o ensino fundamental.',
+    )
     return app.inject({
       method: 'POST',
       url: `/organizations/${orgId}/mis`,
