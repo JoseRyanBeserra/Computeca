@@ -19,6 +19,7 @@ import { usersRoutes } from './routes/users/usersRoutes'
 import { materialPdfUploadRoutes } from './routes/resources/materials/pdf/materialPdfUploadRoutes'
 import { logsRoutes } from './routes/logs/logsRoutes'
 import { organizationsRoutes } from './routes/organizations/organizationsRoutes'
+import { configRoutes } from './routes/config/configRoutes'
 import { nomearSpanHttp } from './lib/tracing'
 
 export function buildApp() {
@@ -144,6 +145,7 @@ export function buildApp() {
   app.register(materialPdfUploadRoutes, { prefix: '/mis' })
   app.register(logsRoutes, { prefix: '/logs' })
   app.register(organizationsRoutes, { prefix: '/organizations' })
+  app.register(configRoutes, { prefix: '/config' })
 
   // ── Handler global de erros ──────────────────────────────────────────────────
   app.setErrorHandler(errorHandler)

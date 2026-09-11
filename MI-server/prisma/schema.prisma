@@ -56,6 +56,7 @@ model User {
   orgMemberships          OrganizationMember[]   @relation("OrgMemberships")
   invitesReceived         OrganizationInvite[]   @relation("InvitesReceived")
   invitesSent             OrganizationInvite[]   @relation("InvitesSent")
+  appSettingsUpdated      AppSetting[]           @relation("AppSettingEditor")
 }
 
 model EmailVerificationToken {
@@ -216,4 +217,25 @@ model InspectionLog {
 
   @@index([correlationId])
   @@index([tag])
+}
+
+// ── Configuração de módulos ───────────────────────────────────────────────────
+
+// Par chave/valor para configuração governada pelo painel administrativo.
+// Genérico por desenho, para atender outros módulos sem uma tabela por flag.
+//
+// Chave usada hoje:
+//   "ai.enabled" → { "enabled": boolean }
+//   A ausência do registro significa "o administrador nunca se pronunciou" e é
+//   resolvida como habilitado — o padrão do produto vem do interruptor de
+//   ambiente AI_FEATURES_ENABLED, que nasce desligado.
+model AppSetting {
+  key         String   @id
+  value       Json
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  updatedBy User? @relation("AppSettingEditor", fields: [updatedById], references: [id])
+
+  @@index([updatedById])
 }

@@ -29,12 +29,12 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 **Purpose**: declarar o interruptor e o vocabulário de erro que todas as histórias consomem.
 
-- [ ] T001 Adicionar `AI_FEATURES_ENABLED` ao schema Zod em `MI-server/src/env.ts` — booleano derivado de string com `.default('false')` e `.transform((v) => v === 'true')`, seguindo o padrão já usado por `MINIO_USE_SSL` e `SMTP_SECURE`
-- [ ] T002 Tornar `OPENAI_API_KEY` condicionalmente obrigatória em `MI-server/src/env.ts` via `superRefine`, exigida com mensagem `'OPENAI_API_KEY is required'` apenas quando `AI_FEATURES_ENABLED` é `true`, anexando o erro ao campo `OPENAI_API_KEY` (depende de T001)
-- [ ] T003 [P] Acrescentar `SERVICE_UNAVAILABLE: 503` ao objeto `StatusCode` em `MI-server/src/utils/statusCode.ts`
-- [ ] T004 [P] Acrescentar a chave `AI` com `AI_DISABLED` e `AI_NOT_MANAGEABLE` ao objeto `ERRORS` em `MI-server/src/lib/errors/errors.ts`, ao lado da chave `CHAT` existente
-- [ ] T005 [P] Acrescentar as mensagens de `AI_DISABLED` e `AI_NOT_MANAGEABLE` em **pt-BR e en-US** em `MI-server/src/lib/errors/errorMessages.ts`, com os textos definidos em `contracts/ai-disabled-error.md`
-- [ ] T006 [P] Documentar `AI_FEATURES_ENABLED=false` em `MI-server/.env.example`, com comentário explicando que a ausência de `OPENAI_API_KEY` só é aceita enquanto a IA estiver desligada
+- [X] T001 Adicionar `AI_FEATURES_ENABLED` ao schema Zod em `MI-server/src/env.ts` — booleano derivado de string com `.default('false')` e `.transform((v) => v === 'true')`, seguindo o padrão já usado por `MINIO_USE_SSL` e `SMTP_SECURE`
+- [X] T002 Tornar `OPENAI_API_KEY` condicionalmente obrigatória em `MI-server/src/env.ts` via `superRefine`, exigida com mensagem `'OPENAI_API_KEY is required'` apenas quando `AI_FEATURES_ENABLED` é `true`, anexando o erro ao campo `OPENAI_API_KEY` (depende de T001)
+- [X] T003 [P] Acrescentar `SERVICE_UNAVAILABLE: 503` ao objeto `StatusCode` em `MI-server/src/utils/statusCode.ts`
+- [X] T004 [P] Acrescentar a chave `AI` com `AI_DISABLED` e `AI_NOT_MANAGEABLE` ao objeto `ERRORS` em `MI-server/src/lib/errors/errors.ts`, ao lado da chave `CHAT` existente
+- [X] T005 [P] Acrescentar as mensagens de `AI_DISABLED` e `AI_NOT_MANAGEABLE` em **pt-BR e en-US** em `MI-server/src/lib/errors/errorMessages.ts`, com os textos definidos em `contracts/ai-disabled-error.md`
+- [X] T006 [P] Documentar `AI_FEATURES_ENABLED=false` em `MI-server/.env.example`, com comentário explicando que a ausência de `OPENAI_API_KEY` só é aceita enquanto a IA estiver desligada
 
 ---
 
@@ -44,17 +44,17 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 **⚠️ CRITICAL**: nenhuma história pode começar antes desta fase terminar — toda decisão de renderização, recusa e conexão depende do resolvedor criado aqui.
 
-- [ ] T007 Criar o model `AppSetting` em `MI-server/prisma/schema.prisma` com `key String @id`, `value Json`, `updatedAt DateTime @updatedAt` e `updatedById String?`, mais a relação opcional `updatedBy User? @relation("AppSettingEditor", ...)`
-- [ ] T008 Acrescentar a relação inversa `appSettingsUpdated AppSetting[] @relation("AppSettingEditor")` ao model `User` em `MI-server/prisma/schema.prisma` (depende de T007)
-- [ ] T009 Gerar a migração aditiva com `npx prisma migrate dev --name add_app_setting` em `MI-server/`, confirmando que nenhuma linha existente é alterada (depende de T008)
-- [ ] T010 [P] Criar `MI-server/src/repositories/appSettingRepository.ts` com `findAppSettingByKey(key)` e `upsertAppSetting({ key, value, updatedById })` — apenas queries Prisma, sem lógica de negócio, conforme o Princípio I
-- [ ] T011 Criar `MI-server/src/constants/features.ts` expondo `AI_SETTING_KEY = 'ai.enabled'`, `isAiManageable()` (espelha `env.AI_FEATURES_ENABLED`) e `isAiEnabled()` assíncrono, resolvendo `AI_FEATURES_ENABLED && (registro?.enabled ?? true)`; o `value` é validado por Zod contra `{ enabled: boolean }` e, se malformado, é tratado como ausente com `logger.warn` (depende de T001, T010)
-- [ ] T012 Acrescentar cache em memória de processo a `MI-server/src/constants/features.ts`, com `invalidateAiAvailabilityCache()` exportado para uso na escrita, evitando consulta ao banco a cada requisição (depende de T011)
-- [ ] T013 [P] Converter `MI-server/src/lib/queue.ts` para acesso preguiçoso: remover `new Queue(...)`, o listener de erro e `waitUntilReady()` do corpo do módulo, expondo `getVectorizeQueue()` que instancia sob demanda, mantém a instância em memória e retorna `null` quando `AI_FEATURES_ENABLED` é `false`
-- [ ] T014 [P] Converter `MI-server/src/lib/openai.ts` para cliente preguiçoso via `getOpenAiClient()`, eliminando o `new OpenAI({ apiKey: env.OPENAI_API_KEY })` executado no import
-- [ ] T015 Atualizar os consumidores de `openai` em `MI-server/src/services/resources/materials/pdf/materialPdfChatService.ts`, `materialPdfSummaryService.ts` e `MI-server/src/workers/vectorizeWorker.ts` para usar `getOpenAiClient()` (depende de T014)
-- [ ] T016 [P] Escrever testes unitários da resolução de disponibilidade em `MI-server/__tests__/unit/config/features.test.ts`, cobrindo as quatro linhas da tabela-verdade de `data-model.md`, o registro malformado tratado como ausente e a invalidação de cache (depende de T012)
-- [ ] T017 [P] Escrever teste unitário em `MI-server/__tests__/unit/lib/queue.test.ts` provando que importar o módulo **não** abre conexão com Redis e que `getVectorizeQueue()` retorna `null` com a IA desativada (depende de T013)
+- [X] T007 Criar o model `AppSetting` em `MI-server/prisma/schema.prisma` com `key String @id`, `value Json`, `updatedAt DateTime @updatedAt` e `updatedById String?`, mais a relação opcional `updatedBy User? @relation("AppSettingEditor", ...)`
+- [X] T008 Acrescentar a relação inversa `appSettingsUpdated AppSetting[] @relation("AppSettingEditor")` ao model `User` em `MI-server/prisma/schema.prisma` (depende de T007)
+- [X] T009 Gerar a migração aditiva com `npx prisma migrate dev --name add_app_setting` em `MI-server/`, confirmando que nenhuma linha existente é alterada (depende de T008)
+- [X] T010 [P] Criar `MI-server/src/repositories/appSettingRepository.ts` com `findAppSettingByKey(key)` e `upsertAppSetting({ key, value, updatedById })` — apenas queries Prisma, sem lógica de negócio, conforme o Princípio I
+- [X] T011 Criar `MI-server/src/constants/features.ts` expondo `AI_SETTING_KEY = 'ai.enabled'`, `isAiManageable()` (espelha `env.AI_FEATURES_ENABLED`) e `isAiEnabled()` assíncrono, resolvendo `AI_FEATURES_ENABLED && (registro?.enabled ?? true)`; o `value` é validado por Zod contra `{ enabled: boolean }` e, se malformado, é tratado como ausente com `logger.warn` (depende de T001, T010)
+- [X] T012 Acrescentar cache em memória de processo a `MI-server/src/constants/features.ts`, com `invalidateAiAvailabilityCache()` exportado para uso na escrita, evitando consulta ao banco a cada requisição (depende de T011)
+- [X] T013 [P] Converter `MI-server/src/lib/queue.ts` para acesso preguiçoso: remover `new Queue(...)`, o listener de erro e `waitUntilReady()` do corpo do módulo, expondo `getVectorizeQueue()` que instancia sob demanda, mantém a instância em memória e retorna `null` quando `AI_FEATURES_ENABLED` é `false`
+- [X] T014 [P] Converter `MI-server/src/lib/openai.ts` para cliente preguiçoso via `getOpenAiClient()`, eliminando o `new OpenAI({ apiKey: env.OPENAI_API_KEY })` executado no import
+- [X] T015 Atualizar os consumidores de `openai` em `MI-server/src/services/resources/materials/pdf/materialPdfChatService.ts`, `materialPdfSummaryService.ts` e `MI-server/src/workers/vectorizeWorker.ts` para usar `getOpenAiClient()` (depende de T014)
+- [X] T016 [P] Escrever testes unitários da resolução de disponibilidade em `MI-server/__tests__/unit/config/features.test.ts`, cobrindo as quatro linhas da tabela-verdade de `data-model.md`, o registro malformado tratado como ausente e a invalidação de cache (depende de T012)
+- [X] T017 [P] Escrever teste unitário em `MI-server/__tests__/unit/lib/queue.test.ts` provando que importar o módulo **não** abre conexão com Redis e que `getVectorizeQueue()` retorna `null` com a IA desativada (depende de T013)
 
 **Checkpoint**: interruptor resolvível, nenhuma conexão aberta por import. As histórias podem começar.
 
@@ -68,21 +68,21 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Teste de integração de `GET /config/features` em `MI-server/__tests__/integration/config/featureAvailability.test.ts`, cobrindo as três combinações válidas de `enabled`/`manageable`, o acesso **sem token** e o registro malformado, conforme `contracts/get-config-features.md`
-- [ ] T019 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialAiFieldsOmitted.test.ts` provando que, com a IA desativada, `GET /mis/:id` e `GET /mis/all` **não** incluem `vectorStatus` no conteúdo retornado, e que com a IA ativada o campo volta a aparecer (FR-017)
+- [X] T018 [P] [US1] Teste de integração de `GET /config/features` em `MI-server/__tests__/integration/config/featureAvailability.test.ts`, cobrindo as três combinações válidas de `enabled`/`manageable`, o acesso **sem token** e o registro malformado, conforme `contracts/get-config-features.md`
+- [X] T019 [P] [US1] Teste de integração em `MI-server/__tests__/integration/materials/materialAiFieldsOmitted.test.ts` provando que, com a IA desativada, `GET /mis/:id` e `GET /mis/all` **não** incluem `vectorStatus` no conteúdo retornado, e que com a IA ativada o campo volta a aparecer (FR-017)
 - [ ] T020 [P] [US1] Teste de `front/src/pages/MaterialDetailPage.test.tsx` confirmando que, com IA desativada, não há painel de resumo nem aviso de processamento — **inclusive para material com resumo já gravado** e com `vectorStatus` ausente na resposta
 - [ ] T021 [P] [US1] Teste de `front/src/pages/HomePage.test.tsx` confirmando ausência de ação de chat nos cards com IA desativada, para todos os perfis
 - [ ] T022 [P] [US1] Teste de `front/src/app/Router.test.tsx` confirmando que `/materials/:id/chat` redireciona para uma tela válida do acervo com IA desativada, sem mensagem de erro técnica
 
 ### Implementation for User Story 1
 
-- [ ] T023 [P] [US1] Criar `IFeatureAvailability` e `GetFeatureAvailabilityResponse` em `MI-server/src/@types/config/index.ts`, com o formato `{ ai: { enabled: boolean, manageable: boolean } }`
-- [ ] T024 [US1] Criar `MI-server/src/services/config/getFeatureAvailabilityService.ts` retornando `IFeatureAvailability` a partir de `isAiEnabled()` e `isAiManageable()`, com `logger.info` de entrada e saída (depende de T011, T023)
-- [ ] T025 [US1] Criar `MI-server/src/controllers/config/getFeatureAvailabilityController.ts` seguindo o padrão do projeto, com `InspectionLog` `CLIENT_TO_SERVER` antes do try/catch e `SERVER_TO_CLIENT` no sucesso e no erro (depende de T024)
-- [ ] T026 [US1] Criar `MI-server/src/routes/config/configRoutes.ts` registrando `GET /features` **sem** `authenticate`, com JSDoc declarando explicitamente que a rota é pública e por quê, conforme o Princípio II (depende de T025)
-- [ ] T027 [US1] Registrar `configRoutes` com prefixo `/config` em `MI-server/src/app.ts` (depende de T026)
-- [ ] T028 [P] [US1] Tornar `vectorStatus` **opcional** em `IPendingMaterial`, em `MI-server/src/@types/resources/materials/pdf/index.ts` (`vectorStatus?: VectorStatus`)
-- [ ] T029 [US1] Condicionar a seleção de `vectorStatus` a `isAiEnabled()` em `MI-server/src/repositories/resources/materials/pdf/materialPdfViewRepository.ts`, `materialPdfAllListRepository.ts` e `materialPdfPendingListRepository.ts` — **não alterar** `materialPdfChatRepository.ts` nem `materialPdfSummaryRepository.ts`, cujas leituras são internas e só executam com a IA ativa (depende de T011, T028)
+- [X] T023 [P] [US1] Criar `IFeatureAvailability` e `GetFeatureAvailabilityResponse` em `MI-server/src/@types/config/index.ts`, com o formato `{ ai: { enabled: boolean, manageable: boolean } }`
+- [X] T024 [US1] Criar `MI-server/src/services/config/getFeatureAvailabilityService.ts` retornando `IFeatureAvailability` a partir de `isAiEnabled()` e `isAiManageable()`, com `logger.info` de entrada e saída (depende de T011, T023)
+- [X] T025 [US1] Criar `MI-server/src/controllers/config/getFeatureAvailabilityController.ts` seguindo o padrão do projeto, com `InspectionLog` `CLIENT_TO_SERVER` antes do try/catch e `SERVER_TO_CLIENT` no sucesso e no erro (depende de T024)
+- [X] T026 [US1] Criar `MI-server/src/routes/config/configRoutes.ts` registrando `GET /features` **sem** `authenticate`, com JSDoc declarando explicitamente que a rota é pública e por quê, conforme o Princípio II (depende de T025)
+- [X] T027 [US1] Registrar `configRoutes` com prefixo `/config` em `MI-server/src/app.ts` (depende de T026)
+- [X] T028 [P] [US1] Tornar `vectorStatus` **opcional** em `IPendingMaterial`, em `MI-server/src/@types/resources/materials/pdf/index.ts` (`vectorStatus?: VectorStatus`)
+- [X] T029 [US1] Condicionar a seleção de `vectorStatus` a `isAiEnabled()` em `MI-server/src/repositories/resources/materials/pdf/materialPdfViewRepository.ts`, `materialPdfAllListRepository.ts` e `materialPdfPendingListRepository.ts` — **não alterar** `materialPdfChatRepository.ts` nem `materialPdfSummaryRepository.ts`, cujas leituras são internas e só executam com a IA ativa (depende de T011, T028)
 - [ ] T030 [P] [US1] Criar `front/src/features/config/api/configApi.ts` com `getFeatureAvailabilityRequest()` e os tipos correspondentes
 - [ ] T031 [US1] Criar `front/src/context/FeaturesContext.tsx` que consulta a disponibilidade uma única vez no carregamento e a expõe ao app, tratando falha de rede como **IA desativada** — o padrão seguro é esconder (depende de T030)
 - [ ] T032 [US1] Criar o hook `front/src/features/config/hooks/useFeatures.ts` sobre o contexto (depende de T031)
@@ -139,7 +139,7 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 - [ ] T052 [US3] Criar `MI-server/src/middlewares/requireAiEnabled.ts` seguindo a assinatura de `requireUploadPermission`, lançando `GeneralErrorResponse(StatusCode.SERVICE_UNAVAILABLE, buildError(ERRORS.AI.AI_DISABLED))` quando `isAiEnabled()` for falso, com JSDoc explicando o uso após `authenticate` (depende de T003, T004, T011)
 - [ ] T053 [US3] Aplicar `requireAiEnabled` como `preHandler` **após** `authenticate` nas rotas `POST /:id/chat` e `GET /:id/summary` em `MI-server/src/routes/resources/materials/pdf/materialPdfUploadRoutes.ts`, mantendo ambas registradas nos dois estados do interruptor (depende de T052)
-- [ ] T054 [US3] Condicionar o enfileiramento em `MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts` — com a IA desativada, a aprovação conclui sem chamar `vectorizeQueue.add`, e o acesso passa a usar `getVectorizeQueue()` (depende de T011, T013)
+- [X] T054 [US3] Condicionar o enfileiramento em `MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts` — com a IA desativada, a aprovação conclui sem chamar `vectorizeQueue.add`, e o acesso passa a usar `getVectorizeQueue()` (depende de T011, T013)
 
 **Checkpoint**: porta dos fundos fechada. Orçamento de tokens e registros de erro protegidos contra chamadas diretas.
 

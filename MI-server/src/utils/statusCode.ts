@@ -13,6 +13,7 @@ export const StatusCode = {
   UNSUPPORTED_MEDIA_TYPE: 415,
   PAYLOAD_TOO_LARGE:     413,
   INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE:   503,
 } as const
 
 export type StatusCodeValue = (typeof StatusCode)[keyof typeof StatusCode]

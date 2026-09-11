@@ -2,6 +2,8 @@
 import { z } from 'zod'
 import { findAllMaterials, type AllMaterialsResult } from '../../../../repositories/resources/materials/pdf/materialPdfAllListRepository'
 import { validateRequest } from '../../../../utils/validateRequest'
+import { omitAiFieldsFromList } from '../../../../utils/omitAiFields'
+import { isAiEnabled } from '../../../../constants/features'
 import { logger } from '../../../../lib/logger'
 
 const allMaterialsQuerySchema = z.object({
@@ -14,6 +16,8 @@ export async function materialPdfAllListService(input: unknown): Promise<AllMate
   logger.info('IN - materialPdfAllListService')
   const query = validateRequest(input, allMaterialsQuerySchema)
   const result = await findAllMaterials(query)
+  const aiEnabled = await isAiEnabled()
+
   logger.info('OUT - materialPdfAllListService')
-  return result
+  return { ...result, materials: omitAiFieldsFromList(result.materials, aiEnabled) }
 }

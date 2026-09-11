@@ -1,6 +1,5 @@
 import 'dotenv/config'
 import { Worker, type Job } from 'bullmq'
-import OpenAI from 'openai'
 import { randomUUID } from 'node:crypto'
 import { minioClient, MINIO_BUCKET } from '../lib/minio'
 import { getQdrant, QDRANT_COLLECTION, ensureQdrantCollection } from '../lib/qdrant'
@@ -10,6 +9,7 @@ import { logger } from '../lib/logger'
 import { withSpan, withSpanSync } from '../lib/tracing'
 import type { Span } from '@opentelemetry/api'
 import type { VectorizePdfJob } from '../lib/queue'
+import { getOpenAiClient } from '../lib/openai'
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import pdfParse = require('pdf-parse')
@@ -17,8 +17,6 @@ import pdfParse = require('pdf-parse')
 const CHUNK_SIZE    = 1000
 const CHUNK_OVERLAP = 200
 const EMBED_BATCH   = 100
-
-const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY })
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -51,7 +49,7 @@ async function embedBatch(texts: string[]): Promise<number[][]> {
     'mi.vetorizacao.embedding_batch',
     { 'ia.modelo': 'text-embedding-3-small', 'mi.chunks_no_batch': texts.length },
     async (span) => {
-      const response = await openai.embeddings.create({
+      const response = await getOpenAiClient().embeddings.create({
         model: 'text-embedding-3-small',
         input: texts,
       })

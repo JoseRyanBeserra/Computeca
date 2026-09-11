@@ -28,7 +28,7 @@ export interface IPendingMaterial {
   mimeType: string
   sizeBytes: number
   status: MIStatus
-  vectorStatus: VectorStatus
+  vectorStatus?: VectorStatus // omitido nas respostas quando a IA esta desativada (FR-017)
   habilidadesBncc: string[]
   uploadedById: string
   uploadedBy: { name: string; email: string }

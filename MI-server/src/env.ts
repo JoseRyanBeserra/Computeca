@@ -53,8 +53,15 @@ const envSchema = z.object({
   QDRANT_URL:     z.string().url().default('http://localhost:6333'),
   QDRANT_API_KEY: z.string().optional(),
 
+  // ── Funcionalidades de IA ──────────────────────────────────────────────────
+  // Interruptor mestre da instalação. Desativado, nada de IA existe: nem conexão
+  // com Redis ou Qdrant, nem atendimento das rotas, nem exibição no front.
+  // O padrão do projeto é desativado — quem clona o repositório sobe sem IA.
+  AI_FEATURES_ENABLED: z.string().optional().default('false').transform((v) => v === 'true'),
+
   // ── OpenAI (embeddings) ────────────────────────────────────────────────────
-  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
+  // Exigida apenas quando a IA está habilitada — ver o superRefine abaixo.
+  OPENAI_API_KEY: z.string().optional(),
 
   // URL base do frontend (usada no link do e-mail de verificação)
   APP_URL: z.string().url().optional().default('http://localhost:5173'),
@@ -62,6 +69,18 @@ const envSchema = z.object({
   // Validade do token de verificação de e-mail em horas
   EMAIL_VERIFICATION_EXPIRES_HOURS: z.coerce.number().optional().default(24),
 })
+  .superRefine((env, ctx) => {
+    // A chave da OpenAI só é obrigatória quando a IA está ligada. Sem isso a
+    // aplicação não subiria em instalações que não usam IA, contrariando a
+    // premissa de que o estado desativado é o padrão do projeto.
+    if (env.AI_FEATURES_ENABLED && !env.OPENAI_API_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['OPENAI_API_KEY'],
+        message: 'OPENAI_API_KEY is required when AI_FEATURES_ENABLED is true',
+      })
+    }
+  })
 
 const _env = envSchema.safeParse(process.env)
 
