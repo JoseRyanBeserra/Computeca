@@ -29,7 +29,7 @@ que a escolha de rota por perfil e situação fique em um lugar só.
 |---|---|
 | **Carregando** | Área com a mesma altura do documento e indicador de progresso. A altura reservada evita que o restante da página salte quando o documento chega. |
 | **Documento exibido** | `<object type="application/pdf">` com o documento, altura fixa, rolagem interna. |
-| **Navegador sem suporte** | Conteúdo de fallback do `<object>`: explicação e chamada para abrir em tela cheia. Declarativo, sem JavaScript. |
+| **Navegador sem suporte** | Conteúdo de fallback do `<object>`: explicação e chamada para abrir em tela cheia. Declarativo, sem JavaScript. **Não verificável por teste automatizado** — ver aviso abaixo. |
 | **Sem permissão** | Mensagem informando que o documento não está disponível para o usuário. **Sem** botão de tentar novamente — repetir não mudaria o resultado. |
 | **Falha de carregamento** | Mensagem de indisponibilidade temporária **com** botão de tentar novamente (FR-008). |
 | **Tela estreita** | Cartão com o nome do documento e chamada para abrir em tela cheia. O `<object>` **não é montado**. |
@@ -46,6 +46,18 @@ Vem do código de situação da resposta da API:
 
 Repetir uma requisição que foi recusada por permissão só produziria a mesma recusa — oferecer o
 botão seria enganoso.
+
+### Aviso sobre o fallback do `<object>` em teste
+
+No jsdom o `<object>` **nunca falha ao carregar**, e seus filhos permanecem sempre no DOM. Isso tem
+duas consequências que precisam ser respeitadas ao escrever os testes:
+
+- **Nunca** asseverar o estado de sucesso ou de falha pela presença ou ausência do texto de
+  fallback: ele está presente nos dois casos, e o teste passaria sem provar nada.
+- Asseverar sempre pelos **atributos** do elemento — `data` com a URL obtida e
+  `type="application/pdf"`.
+
+O comportamento do fallback só é verificável manualmente, em navegador sem suporte a PDF embutido.
 
 ### Garantias
 
@@ -70,10 +82,16 @@ useMaterialFileUrl(materialId: string, materialStatus: MIStatus, enabled?: boole
 
 Retorna o estado descrito em [data-model.md](../data-model.md#estado-acesso-ao-arquivo).
 
+O perfil do usuário **não é parâmetro**: o hook o obtém internamente por `useAuth()`. Manter o
+perfil fora da assinatura evita que cada ponto de uso tenha de buscá-lo e repassá-lo, o que abriria
+espaço para divergência entre a pré-visualização e a tela cheia.
+
 ### Responsabilidades
 
 1. **Escolher a rota** conforme perfil do usuário e situação do material — a mesma regra que
-   `handleOpenPdf` já aplica hoje, extraída para cá e passando a servir aos dois usos.
+   `handleOpenPdf` já aplica hoje, extraída para cá e passando a servir aos dois usos. O hook lê o
+   perfil de `useAuth()` e o repassa para a função de seleção em `materialsApi.ts`, que permanece
+   pura: recebe papel e situação, devolve a requisição correspondente.
 2. **Agendar a renovação** para 5 minutos antes da expiração, executando apenas com a aba visível.
 3. **Expor `refetch`** para a nova tentativa explícita.
 4. **Respeitar `enabled`**: com `false` não emite requisição alguma — usado para não buscar o acesso
@@ -93,7 +111,8 @@ Independente da chave do material, para que a falha de uma não contamine a outr
 
 A tela passa a:
 
-1. Renderizar `PdfPreview` entre os metadados e as ações.
+1. Renderizar `PdfPreview` **imediatamente antes de `<AiSection>`** — depois das habilidades BNCC,
+   antes da área de IA. O documento é o conteúdo principal; o resumo por IA comenta sobre ele.
 2. Passar `handleOpenPdf` como `onOpenFullscreen`.
 3. Manter o botão "Abrir PDF" exatamente como está (FR-003).
 
@@ -106,7 +125,7 @@ como estão (FR-010).
 
 | Caso | Verificação |
 |---|---|
-| Documento disponível | O elemento de documento é renderizado com a URL obtida |
+| Documento disponível | O elemento `<object>` tem `data` igual à URL obtida e `type="application/pdf"` — **não** asseverar por texto de fallback |
 | Sem permissão (`403`) | Mensagem de indisponibilidade, **sem** botão de tentar novamente |
 | Falha temporária (`500`) | Mensagem de indisponibilidade **com** botão de tentar novamente |
 | Nova tentativa | Acionar o botão refaz a requisição |
