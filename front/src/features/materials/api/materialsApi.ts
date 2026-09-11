@@ -1,5 +1,6 @@
 // src/features/materials/api/materialsApi.ts
 import { api } from '../../../lib/api'
+import type { Role } from '../../../types/auth'
 
 export type MIStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
 
@@ -189,4 +190,34 @@ export interface MaterialSummaryResponse {
 export async function getMaterialSummaryRequest(materialId: string): Promise<MaterialSummaryResponse> {
   const { data } = await api.get<MaterialSummaryResponse>(`/mis/${materialId}/summary`)
   return data
+}
+
+// ── Acesso ao arquivo ─────────────────────────────────────────────────────────
+
+export interface MaterialFileAccess {
+  url: string
+  expiresInSeconds: number
+}
+
+/**
+ * Obtém o acesso temporário ao arquivo de um material, escolhendo a rota pela
+ * mesma regra que a tela de detalhes sempre aplicou.
+ *
+ * Função **pura**: recebe papel e situação como parâmetros e não acessa contexto
+ * de autenticação. Quem conhece o usuário é o hook `useMaterialFileUrl`, que lê
+ * o perfil de `useAuth()` e o repassa para cá.
+ *
+ * Concentrar a escolha aqui garante que a pré-visualização e a abertura em tela
+ * cheia nunca divirjam em permissão.
+ */
+export function requestMaterialFileAccess(
+  materialId: string,
+  role: Role | undefined,
+  status: MIStatus,
+): Promise<MaterialFileAccess> {
+  const isStaff = role === 'PROFESSOR' || role === 'ADMIN'
+
+  if (isStaff) return getReviewPresignedUrlRequest(materialId)
+  if (status === 'APPROVED') return getPublicPresignedUrlRequest(materialId)
+  return getMaterialPresignedUrlRequest(materialId)
 }
