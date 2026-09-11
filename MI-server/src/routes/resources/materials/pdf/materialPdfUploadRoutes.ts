@@ -1,5 +1,6 @@
 // src/routes/resources/materials/pdf/materialPdfUploadRoutes.ts
 import type { FastifyInstance } from 'fastify'
+import { requireAiEnabled } from '../../../../middlewares/requireAiEnabled'
 import { authenticate } from '../../../../middlewares/authenticate'
 import { requireUploadPermission } from '../../../../middlewares/requireUploadPermission'
 import { materialPdfUploadController } from '../../../../controllers/resources/materials/pdf/materialPdfUploadController'
@@ -156,10 +157,13 @@ export async function materialPdfUploadRoutes(app: FastifyInstance): Promise<voi
    * Body: { question: string }
    * Resposta: { answer: string, chunksUsed: number }
    * Permissão: qualquer usuário autenticado.
+   * Indisponibilidade: 503 AI_DISABLED quando as funcionalidades de IA estão
+   * desativadas. A rota permanece registrada nos dois estados do interruptor,
+   * para preservar o inventário da API e permitir religar sem reinício.
    */
   app.post(
     '/:id/chat',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, requireAiEnabled] },
     materialPdfChatController,
   )
 
@@ -179,10 +183,12 @@ export async function materialPdfUploadRoutes(app: FastifyInstance): Promise<voi
    * devolve o cache persistido nas visitas seguintes (qualquer usuário).
    * Resposta: { status: 'DONE' | 'PROCESSING', summary: string | null, generatedAt: string | null }
    * Permissão: qualquer usuário autenticado.
+   * Indisponibilidade: 503 AI_DISABLED quando as funcionalidades de IA estão
+   * desativadas.
    */
   app.get(
     '/:id/summary',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, requireAiEnabled] },
     materialPdfSummaryController,
   )
 }

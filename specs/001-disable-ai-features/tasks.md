@@ -130,15 +130,15 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 3
 
-- [ ] T048 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` cobrindo `POST /mis/:id/chat` e `GET /mis/:id/summary` com IA desativada — `503` e `code: AI_DISABLED` — e a volta ao comportamento original com a IA ativada
-- [ ] T049 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` garantindo que, **sem token**, ambas as rotas respondem `401` e nunca `503`, provando a ordem dos `preHandler`
-- [ ] T050 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts`, com o cliente de IA espionado, provando que nenhuma chamada ao provedor é emitida com a IA desativada (FR-007)
-- [ ] T051 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialReviewNoQueue.test.ts` provando que aprovar um material com IA desativada conclui com sucesso e **não cria job**, deixando `vectorStatus` em `PENDING`
+- [X] T048 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` cobrindo `POST /mis/:id/chat` e `GET /mis/:id/summary` com IA desativada — `503` e `code: AI_DISABLED` — e a volta ao comportamento original com a IA ativada
+- [X] T049 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts` garantindo que, **sem token**, ambas as rotas respondem `401` e nunca `503`, provando a ordem dos `preHandler`
+- [X] T050 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialAiDisabled.test.ts`, com o cliente de IA espionado, provando que nenhuma chamada ao provedor é emitida com a IA desativada (FR-007)
+- [X] T051 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialReviewNoQueue.test.ts` provando que aprovar um material com IA desativada conclui com sucesso e **não cria job**, deixando `vectorStatus` em `PENDING`
 
 ### Implementation for User Story 3
 
-- [ ] T052 [US3] Criar `MI-server/src/middlewares/requireAiEnabled.ts` seguindo a assinatura de `requireUploadPermission`, lançando `GeneralErrorResponse(StatusCode.SERVICE_UNAVAILABLE, buildError(ERRORS.AI.AI_DISABLED))` quando `isAiEnabled()` for falso, com JSDoc explicando o uso após `authenticate` (depende de T003, T004, T011)
-- [ ] T053 [US3] Aplicar `requireAiEnabled` como `preHandler` **após** `authenticate` nas rotas `POST /:id/chat` e `GET /:id/summary` em `MI-server/src/routes/resources/materials/pdf/materialPdfUploadRoutes.ts`, mantendo ambas registradas nos dois estados do interruptor (depende de T052)
+- [X] T052 [US3] Criar `MI-server/src/middlewares/requireAiEnabled.ts` seguindo a assinatura de `requireUploadPermission`, lançando `GeneralErrorResponse(StatusCode.SERVICE_UNAVAILABLE, buildError(ERRORS.AI.AI_DISABLED))` quando `isAiEnabled()` for falso, com JSDoc explicando o uso após `authenticate` (depende de T003, T004, T011)
+- [X] T053 [US3] Aplicar `requireAiEnabled` como `preHandler` **após** `authenticate` nas rotas `POST /:id/chat` e `GET /:id/summary` em `MI-server/src/routes/resources/materials/pdf/materialPdfUploadRoutes.ts`, mantendo ambas registradas nos dois estados do interruptor (depende de T052)
 - [X] T054 [US3] Condicionar o enfileiramento em `MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts` — com a IA desativada, a aprovação conclui sem chamar `vectorizeQueue.add`, e o acesso passa a usar `getVectorizeQueue()` (depende de T011, T013)
 
 **Checkpoint**: porta dos fundos fechada. Orçamento de tokens e registros de erro protegidos contra chamadas diretas.
