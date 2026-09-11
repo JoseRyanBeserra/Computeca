@@ -49,7 +49,9 @@ export async function createMaterial(opts: CreateMaterialOpts) {
   return prisma.materialInstrucional.create({
     data: {
       title:            opts.title ?? 'Material de Teste',
-      description:      opts.description === undefined ? 'd'.repeat(60) : opts.description,
+      // Padrão `null` = material anterior à exigência de descrição (feature 003).
+      // NÃO mude este default: testes existentes dependem dele.
+      description:      opts.description ?? null,
       originalFileName: 'arquivo.pdf',
       storageKey:       `key-${randomUUID()}`,
       mimeType:         'application/pdf',

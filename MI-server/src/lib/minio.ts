@@ -28,6 +28,18 @@ export const minioPublicClient: Client = env.MINIO_PUBLIC_ENDPOINT
 export const MINIO_BUCKET = env.MINIO_BUCKET
 
 /**
+ * Remove um objeto do bucket. Usado na substituição do documento de um material:
+ * o arquivo anterior deixa de existir quando o novo toma o seu lugar.
+ *
+ * **A remoção é definitiva** — nada no sistema recupera o objeto apagado. Por
+ * isso ela é sempre a ÚLTIMA etapa da substituição, executada só depois de o
+ * registro já apontar para o arquivo novo.
+ */
+export async function removeObject(storageKey: string): Promise<void> {
+  await minioClient.removeObject(MINIO_BUCKET, storageKey)
+}
+
+/**
  * Garante que o bucket configurado existe no MinIO.
  * Deve ser chamado na inicialização do servidor.
  * Cria o bucket automaticamente caso ele não exista ainda.

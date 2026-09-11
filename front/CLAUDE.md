@@ -75,6 +75,19 @@ A validação de verdade continua no servidor.
 Selecionar o arquivo pré-preenche o título com o nome dele — sugestão editável, distinta do
 servidor adivinhar (ele não faz mais isso). Em teste, lembre de limpar o campo antes de digitar.
 
+## Edição de material
+
+`pages/MaterialEditPage.tsx`, rota `/materials/:id/edit`, guardada por `AdminRoute`.
+
+- O caminho para a edição aparece na tela de detalhes **somente** com `isSysAdmin(user)`. Ocultar é
+  conveniência — a proteção real está no servidor, que recusa os demais perfis.
+- O formulário abre **preenchido com os valores atuais**, e o preenchimento acontece uma vez só: um
+  refetch em segundo plano não pode descartar o que a pessoa está digitando.
+- **Selecionar um arquivo exige confirmação explícita antes do envio.** A troca apaga o documento
+  atual e não tem desfazer. Quando o material está aprovado, o aviso também diz que ele voltará
+  para revisão e sairá do acervo público.
+- Título e descrição seguem **sempre** na requisição; `file` só quando há documento novo.
+
 Na tela de detalhes, `description` em `null` significa material anterior à exigência: indique a
 ausência de forma discreta, nunca como erro. Use `whitespace-pre-line` para preservar parágrafos
 sem interpretar marcação.

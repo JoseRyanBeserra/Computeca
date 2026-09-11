@@ -115,18 +115,18 @@ abre, que o antigo sumiu do armazenamento e que o material saiu do acervo públi
 
 ### Tests for User Story 2
 
-- [ ] T028 [P] [US2] Teste de integração em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: substitui o documento → `200`, e a `storageKey` resultante é **diferente da anterior** (FR-010). Chave igual significaria sobrescrita, que é o desenho que destrói o original antes de saber se o novo chegou inteiro
-- [ ] T029 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: concluída a substituição, o objeto da **chave anterior não existe mais** no armazenamento (FR-009). Verificar com `minioClient.statObject(MINIO_BUCKET, chaveAnterior)` **esperando que lance** — a integracao usa MinIO real, nao mock, como `materialUpload.test.ts` ja faz
-- [ ] T030 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts` das transições: `APPROVED` → **`PENDING_REVIEW`**; `PENDING_REVIEW` → **permanece**; `REJECTED` → **permanece** (FR-013)
-- [ ] T031 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: após a troca, `summary` e `summaryGeneratedAt` ficam **nulos** e `summaryStatus` e `vectorStatus` voltam a **`PENDING`** (FR-014)
-- [ ] T032 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: arquivo que **não é PDF** → `415`; arquivo **acima do limite** → `413`. **O 413 vem do plugin multipart** (`fileSize` em `app.ts`), que aborta antes de o service ver o buffer: asserte o status, **nao** o codigo `FILE_TOO_LARGE` do catalogo. Nos dois casos **o documento atual permanece intacto e acessível** (FR-008)
-- [ ] T033 [P] [US2] Teste unitário em `MI-server/__tests__/unit/materials/materialPdfEditService.test.ts` da compensação: falha ao atualizar o registro **remove o arquivo novo** e nada muda; falha ao remover o arquivo antigo **não desfaz a edição**, apenas registra advertência (FR-011)
-- [ ] T034 [P] [US2] Teste em `front/src/pages/MaterialEditPage.test.tsx`: selecionar um arquivo exige **confirmação explícita** antes do envio, e **recusar a confirmação não envia nada** (FR-012)
+- [X] T028 [P] [US2] Teste de integração em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: substitui o documento → `200`, e a `storageKey` resultante é **diferente da anterior** (FR-010). Chave igual significaria sobrescrita, que é o desenho que destrói o original antes de saber se o novo chegou inteiro
+- [X] T029 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: concluída a substituição, o objeto da **chave anterior não existe mais** no armazenamento (FR-009). Verificar com `minioClient.statObject(MINIO_BUCKET, chaveAnterior)` **esperando que lance** — a integracao usa MinIO real, nao mock, como `materialUpload.test.ts` ja faz
+- [X] T030 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts` das transições: `APPROVED` → **`PENDING_REVIEW`**; `PENDING_REVIEW` → **permanece**; `REJECTED` → **permanece** (FR-013)
+- [X] T031 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: após a troca, `summary` e `summaryGeneratedAt` ficam **nulos** e `summaryStatus` e `vectorStatus` voltam a **`PENDING`** (FR-014)
+- [X] T032 [P] [US2] Teste em `MI-server/__tests__/integration/materials/materialEditFile.test.ts`: arquivo que **não é PDF** → `415`; arquivo **acima do limite** → `413`. **O 413 vem do plugin multipart** (`fileSize` em `app.ts`), que aborta antes de o service ver o buffer: asserte o status, **nao** o codigo `FILE_TOO_LARGE` do catalogo. Nos dois casos **o documento atual permanece intacto e acessível** (FR-008)
+- [X] T033 [P] [US2] Teste unitário em `MI-server/__tests__/unit/materials/materialPdfEditService.test.ts` da compensação: falha ao atualizar o registro **remove o arquivo novo** e nada muda; falha ao remover o arquivo antigo **não desfaz a edição**, apenas registra advertência (FR-011)
+- [X] T034 [P] [US2] Teste em `front/src/pages/MaterialEditPage.test.tsx`: selecionar um arquivo exige **confirmação explícita** antes do envio, e **recusar a confirmação não envia nada** (FR-012)
 
 ### Implementation for User Story 2
 
-- [ ] T035 [US2] Acrescentar remoção de objeto a `MI-server/src/lib/minio.ts`. É a única capacidade de armazenamento que o projeto ainda não usava — o soft delete de material nunca apagou arquivo. Todo acesso ao armazenamento continua passando por este módulo
-- [ ] T036 [US2] Implementar em `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o caminho de substituição, **nesta ordem exata**: valida o arquivo (magic bytes, tamanho, tipo — as mesmas verificações do cadastro) → grava sob **chave nova** → atualiza o registro com ponteiro do arquivo, transição de situação e invalidação dos dados de IA → **só então** remove o arquivo antigo. Falha ao atualizar remove o arquivo novo; falha ao remover o antigo **não desfaz nada** (depende de T025, T035)
+- [X] T035 [US2] Acrescentar remoção de objeto a `MI-server/src/lib/minio.ts`. É a única capacidade de armazenamento que o projeto ainda não usava — o soft delete de material nunca apagou arquivo. Todo acesso ao armazenamento continua passando por este módulo
+- [X] T036 [US2] Implementar em `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o caminho de substituição, **nesta ordem exata**: valida o arquivo (magic bytes, tamanho, tipo — as mesmas verificações do cadastro) → grava sob **chave nova** → atualiza o registro com ponteiro do arquivo, transição de situação e invalidação dos dados de IA → **só então** remove o arquivo antigo. Falha ao atualizar remove o arquivo novo; falha ao remover o antigo **não desfaz nada** (depende de T025, T035)
 - [X] T037 [US2] Acrescentar a `front/src/pages/MaterialEditPage.tsx` a seleção de arquivo e a confirmação explícita, avisando que o documento atual **será apagado e que isso não tem desfazer**; e o aviso, após salvar, de que o material voltou para revisão quando foi o caso (depende de T026)
 
 **Checkpoint**: o documento é substituível, e nenhuma falha deixa material sem arquivo.
@@ -146,16 +146,16 @@ confirmar que nenhum registro novo aparece.
 
 ### Tests for User Story 3
 
-- [ ] T038 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: uma edição de metadados grava **um** registro `MI_UPDATED` com `actorId`, `actorRole`, `targetId` e os campos alterados, cada um com `from` e `to` (FR-016)
-- [ ] T039 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: o valor anterior da descrição é guardado **por inteiro, não truncado** — é o que permite reconstruir o que existia antes
-- [ ] T040 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: a troca de documento registra a identificação do **arquivo anterior** e a **transição de situação**, quando houve
-- [ ] T041 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: salvar **sem alterar nada** devolve `200` e **não grava registro algum** (FR-017)
-- [ ] T042 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: edição recusada **por perfil** e edição recusada **por validação** não gravam registro (FR-018)
+- [X] T038 [P] [US3] Teste de integração em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: uma edição de metadados grava **um** registro `MI_UPDATED` com `actorId`, `actorRole`, `targetId` e os campos alterados, cada um com `from` e `to` (FR-016)
+- [X] T039 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: o valor anterior da descrição é guardado **por inteiro, não truncado** — é o que permite reconstruir o que existia antes
+- [X] T040 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: a troca de documento registra a identificação do **arquivo anterior** e a **transição de situação**, quando houve
+- [X] T041 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: salvar **sem alterar nada** devolve `200` e **não grava registro algum** (FR-017)
+- [X] T042 [P] [US3] Teste em `MI-server/__tests__/integration/materials/materialEditAudit.test.ts`: edição recusada **por perfil** e edição recusada **por validação** não gravam registro (FR-018)
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Acrescentar a `MI-server/src/utils/buildMaterialEditDiff.ts` as entradas de `file` (chave e nome do arquivo anterior e novo) e de `status` (transição), no formato de [data-model.md](./data-model.md) (depende de T006, T036)
-- [ ] T044 [US3] Acrescentar a `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o curto-circuito do FR-017: diff vazio **e** nenhum arquivo enviado → devolve o material sem atualizar e **sem gravar registro** (depende de T025)
+- [X] T043 [US3] Acrescentar a `MI-server/src/utils/buildMaterialEditDiff.ts` as entradas de `file` (chave e nome do arquivo anterior e novo) e de `status` (transição), no formato de [data-model.md](./data-model.md) (depende de T006, T036)
+- [X] T044 [US3] Acrescentar a `MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts` o curto-circuito do FR-017: diff vazio **e** nenhum arquivo enviado → devolve o material sem atualizar e **sem gravar registro** (depende de T025)
 
 **Checkpoint**: toda alteração é reconstruível, e o silêncio quando nada muda é garantido.
 
@@ -168,10 +168,10 @@ confirmar que nenhum registro novo aparece.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T045 [P] Documentar em `MI-server/CLAUDE.md` a edição: só `ADMIN`, entrada com conjunto completo de metadados, e **a ordem das operações da troca de arquivo** — chave nova, remoção do antigo por último —, para que ninguém a "simplifique" para uma sobrescrita
-- [ ] T046 [P] Documentar em `front/CLAUDE.md` a tela de edição e a confirmação obrigatória da troca de documento
-- [ ] T047 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-007)
-- [ ] T048 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-007)
+- [X] T045 [P] Documentar em `MI-server/CLAUDE.md` a edição: só `ADMIN`, entrada com conjunto completo de metadados, e **a ordem das operações da troca de arquivo** — chave nova, remoção do antigo por último —, para que ninguém a "simplifique" para uma sobrescrita
+- [X] T046 [P] Documentar em `front/CLAUDE.md` a tela de edição e a confirmação obrigatória da troca de documento
+- [X] T047 Executar `npm --prefix MI-server run test:unit` e `npm --prefix MI-server run test:integration` confirmando que nenhum teste existente teve expectativa alterada (SC-007)
+- [X] T048 Executar `npm --prefix front run test` confirmando o mesmo no front (SC-007)
 - [ ] T049 Percorrer os 10 cenários de [quickstart.md](./quickstart.md) no ambiente real, com **duas contas** (`ADMIN` e `PROFESSOR`) — vários cenários dependem de comparar as duas
 
 ---
