@@ -130,3 +130,45 @@ describe('GET /mis/all — omissão de vectorStatus', () => {
     }
   })
 })
+
+describe('GET /mis/pending — omissão de vectorStatus', () => {
+  it('a listagem de pendentes do professor não inclui vectorStatus com a IA desativada', async () => {
+    const app = await getTestApp()
+    const professor = await createUserAndLogin('prof@test.com', 'PROFESSOR')
+    const autor = await createUserAndLogin('autor@test.com', 'INSTITUTIONALIZED')
+    await createMaterial({ uploadedById: autor.userId, status: 'PENDING_REVIEW' })
+
+    setAi(false)
+    const res = await app.inject({
+      method:  'GET',
+      url:     '/mis/pending',
+      headers: { authorization: `Bearer ${professor.accessToken}` },
+    })
+
+    expect(res.statusCode).toBe(200)
+    const lista = res.json()
+    expect(lista.length).toBeGreaterThan(0)
+    for (const m of lista) {
+      expect(m).not.toHaveProperty('vectorStatus')
+    }
+  })
+
+  it('os itens voltam a incluir vectorStatus com a IA ativada', async () => {
+    const app = await getTestApp()
+    const professor = await createUserAndLogin('prof@test.com', 'PROFESSOR')
+    const autor = await createUserAndLogin('autor@test.com', 'INSTITUTIONALIZED')
+    await createMaterial({ uploadedById: autor.userId, status: 'PENDING_REVIEW' })
+
+    setAi(true)
+    const res = await app.inject({
+      method:  'GET',
+      url:     '/mis/pending',
+      headers: { authorization: `Bearer ${professor.accessToken}` },
+    })
+
+    expect(res.statusCode).toBe(200)
+    for (const m of res.json()) {
+      expect(m).toHaveProperty('vectorStatus')
+    }
+  })
+})
