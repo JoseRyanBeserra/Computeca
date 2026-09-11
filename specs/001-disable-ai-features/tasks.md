@@ -104,19 +104,19 @@ Aplicação web com duas pontas no mesmo repositório: `MI-server/src/` (API Fas
 
 ### Tests for User Story 2
 
-- [ ] T038 [P] [US2] Teste de integração em `MI-server/__tests__/integration/config/aiDisabledBoot.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, a construção da aplicação não invoca `ensureQdrantCollection` nem instancia a fila (clientes espionados)
-- [ ] T039 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/env.test.ts` cobrindo os dois lados de T002: `OPENAI_API_KEY` ausente **aceita** com IA desligada e **rejeitada** com IA ligada
-- [ ] T040 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com a IA ligada e o Redis inalcançável, a verificação de inicialização registra aviso específico e **não** derruba a aplicação; e que nada é registrado com a IA desligada (FR-018)
+- [X] - [X] T038 [P] [US2] Teste em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com `AI_FEATURES_ENABLED=false`, nada invoca `ensureQdrantCollection` nem instancia a fila (clientes espionados) — **unitário em vez de integração**: a verificação vive em `lib/aiReadiness.ts`, fora do `buildApp`, e o teste unitário a exercita com precisão maior
+- [X] - [X] T039 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/env.test.ts` cobrindo os dois lados de T002: `OPENAI_API_KEY` ausente **aceita** com IA desligada e **rejeitada** com IA ligada
+- [X] T040 [P] [US2] Teste unitário em `MI-server/__tests__/unit/config/aiReadinessCheck.test.ts` provando que, com a IA ligada e o Redis inalcançável, a verificação de inicialização registra aviso específico e **não** derruba a aplicação; e que nada é registrado com a IA desligada (FR-018)
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Condicionar a chamada de `ensureQdrantCollection()` em `MI-server/src/server.ts` a `env.AI_FEATURES_ENABLED`, preservando o `try/catch` com aviso quando a IA estiver ligada (depende de T001)
-- [ ] T042 [US2] Registrar na inicialização, em `MI-server/src/server.ts`, uma linha explícita informando se as funcionalidades de IA estão ativas ou desativadas, atendendo ao FR-016 (depende de T001)
-- [ ] T043 [US2] Acrescentar a `MI-server/src/server.ts` uma verificação de alcance do **Redis** executada apenas quando a IA está ligada, registrando aviso claro e específico em caso de falha, sem impedir a subida — hoje a fila preguiçosa não conecta no boot, então a ausência do Redis só apareceria ao aprovar um material (FR-018, depende de T001, T013)
-- [ ] T044 [US2] Fazer `MI-server/src/workers/vectorizeWorker.ts` encerrar de forma limpa, com mensagem explicativa e código de saída `0`, quando iniciado com a IA desativada (depende de T001)
-- [ ] T045 [P] [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `MI-server/docker-compose.yml`, sem remover nenhuma definição de serviço ou volume
-- [ ] T046 [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `docker-compose.prod.yml` e **remover do serviço `app` as entradas `depends_on` que apontam para eles** — um `depends_on` para serviço fora do profile ativo impede a stack de subir. Esta versão não vai para produção, então a alteração é por consistência do repositório
-- [ ] T047 [P] [US2] Atualizar as instruções de subida em `MI-server/docker-compose.yml` e `README.md`, documentando `docker compose up -d` para a stack enxuta e `docker compose --profile ai up -d` para incluir os serviços de IA
+- [X] T041 [US2] Condicionar a chamada de `ensureQdrantCollection()` em `MI-server/src/server.ts` a `env.AI_FEATURES_ENABLED`, preservando o `try/catch` com aviso quando a IA estiver ligada (depende de T001)
+- [X] T042 [US2] Registrar na inicialização, em `MI-server/src/server.ts`, uma linha explícita informando se as funcionalidades de IA estão ativas ou desativadas, atendendo ao FR-016 (depende de T001)
+- [X] T043 [US2] Acrescentar a `MI-server/src/server.ts` uma verificação de alcance do **Redis** executada apenas quando a IA está ligada, registrando aviso claro e específico em caso de falha, sem impedir a subida — hoje a fila preguiçosa não conecta no boot, então a ausência do Redis só apareceria ao aprovar um material (FR-018, depende de T001, T013)
+- [X] T044 [US2] Fazer `MI-server/src/workers/vectorizeWorker.ts` encerrar de forma limpa, com mensagem explicativa e código de saída `0`, quando iniciado com a IA desativada (depende de T001)
+- [X] T045 [P] [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `MI-server/docker-compose.yml`, sem remover nenhuma definição de serviço ou volume
+- [X] T046 [US2] Mover `redis` e `qdrant` para `profiles: ["ai"]` em `docker-compose.prod.yml` e **remover do serviço `app` as entradas `depends_on` que apontam para eles** — um `depends_on` para serviço fora do profile ativo impede a stack de subir. Esta versão não vai para produção, então a alteração é por consistência do repositório
+- [X] T047 [P] [US2] Atualizar as instruções de subida em `MI-server/docker-compose.yml` e `README.md`, documentando `docker compose up -d` para a stack enxuta e `docker compose --profile ai up -d` para incluir os serviços de IA
 
 **Checkpoint**: ambiente enxuto no ar, sem erro de conexão e sem depender de fila para aprovar material.
 

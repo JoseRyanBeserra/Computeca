@@ -1,7 +1,7 @@
 // src/server.ts
 import { buildApp } from './app'
 import { ensureBucket } from './lib/minio'
-import { ensureQdrantCollection } from './lib/qdrant'
+import { checkAiServicesReadiness } from './lib/aiReadiness'
 import { env } from './env'
 
 const app = buildApp()
@@ -14,11 +14,17 @@ async function main() {
     console.warn('⚠️  MinIO não acessível na inicialização — subindo sem armazenamento:', (err as Error).message)
   }
 
-  try {
-    await ensureQdrantCollection()
-  } catch (err) {
-    console.warn('⚠️  Qdrant não acessível na inicialização — chat com IA indisponível:', (err as Error).message)
-  }
+  // Estado das funcionalidades de IA, visível nos registros da aplicação (FR-016).
+  console.log(
+    env.AI_FEATURES_ENABLED
+      ? '🤖 Funcionalidades de IA: ATIVAS'
+      : '🚫 Funcionalidades de IA: DESATIVADAS (AI_FEATURES_ENABLED=false) — ' +
+        'fila e busca vetorial não serão acessadas',
+  )
+
+  // Só verifica os serviços de apoio quando a IA está ligada. Com ela desligada
+  // nenhuma conexão é aberta — nem tentada (FR-006).
+  await checkAiServicesReadiness()
 
   app.listen({ port: env.PORT, host: '0.0.0.0' }, (err) => {
     if (err) {

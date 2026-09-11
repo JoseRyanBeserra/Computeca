@@ -180,6 +180,18 @@ async function runVectorizeJob(materialId: string, storageKey: string, spanJob: 
 // ── Bootstrap ──────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
+  // Iniciado por engano com a IA desativada: encerra limpo, sem abrir conexão
+  // com Redis ou Qdrant e sem sinalizar falha — não houve erro, a funcionalidade
+  // é que está desligada.
+  if (!env.AI_FEATURES_ENABLED) {
+    logger.info(
+      'Worker de vetorização: funcionalidades de IA DESATIVADAS ' +
+      '(AI_FEATURES_ENABLED=false) — encerrando sem processar. ' +
+      'Para usá-lo, habilite a IA e suba os serviços de apoio.',
+    )
+    process.exit(0)
+  }
+
   await ensureQdrantCollection()
   logger.info('Qdrant collection ready')
 

@@ -2,8 +2,9 @@
 #
 # Pré-requisito: crie o arquivo .env na raiz de MI-server/ com as variáveis da aplicação.
 #
-# Subir infra:       docker compose up -d
-# Parar infra:       docker compose down
+# Subir infra:       docker compose up -d            (sem os serviços de IA)
+# Subir com IA:      docker compose --profile ai up -d  (inclui redis e qdrant)
+# Parar infra:       docker compose down --profile ai   (para tudo)
 # Console MinIO:     http://localhost:9001  (minioadmin / minioadmin)
 # Rodar migrations:  npx prisma migrate dev
 
@@ -51,7 +52,10 @@ services:
     restart: unless-stopped
 
   # ── Redis (jobs assíncronos / BullMQ) ───────────────────────────────────────
+  # Sob o profile "ai": não sobe com `docker compose up -d`. Serve apenas à fila
+  # de vetorização; com AI_FEATURES_ENABLED=false nada o utiliza.
   redis:
+    profiles: ["ai"]
     image: redis:7-alpine
     container_name: mi-redis
     ports:
@@ -65,7 +69,10 @@ services:
     restart: unless-stopped
 
   # ── Qdrant (banco de vetores para RAG) ─────────────────────────────────────
+  # Sob o profile "ai": não sobe com `docker compose up -d`. Usado apenas por
+  # chat e resumo; a busca textual do acervo roda no PostgreSQL.
   qdrant:
+    profiles: ["ai"]
     image: qdrant/qdrant:latest
     container_name: mi-qdrant
     ports:
