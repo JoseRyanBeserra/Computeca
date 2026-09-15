@@ -18,6 +18,7 @@ dist-ssr
 coverage
 
 # Environment — NUNCA versionar arquivos com valores reais
+.env
 .env.local
 .env.*.local
 
