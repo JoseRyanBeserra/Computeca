@@ -168,6 +168,16 @@ describe('MaterialEditPage', () => {
     expect(screen.getByText(/devolve para\s+revisão/i)).toBeInTheDocument()
   })
 
+  // Feature 006 — a edição usa o mesmo catálogo completo do cadastro (FR-008).
+  it('o seletor de habilidades encontra uma habilidade da Educação Infantil', async () => {
+    renderEdit()
+    const user = userEvent.setup()
+
+    await user.type(await screen.findByLabelText(/Habilidades BNCC/i), 'EI03CO03')
+
+    expect(await screen.findByRole('option', { name: /EI03CO03/ })).toBeInTheDocument()
+  })
+
   // Feature 004 — os links relacionados também são editáveis.
   describe('links relacionados', () => {
     const LINKS = [

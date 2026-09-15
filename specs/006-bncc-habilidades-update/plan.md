@@ -41,7 +41,8 @@ poucas linhas e o `?raw` do Vite já é tipado pelo `vite/client`.
 **Project Type**: Web application (front + API), com mudança restrita ao front.
 
 **Performance Goals**: Nenhuma meta nova. 141 entradas em memória e busca por `includes` sobre elas
-não têm custo perceptível; o limite de 8 sugestões por grupo já existente mantém a lista curta.
+não têm custo perceptível. O limite de 8 sugestões por etapa é **removido** (clarificação de
+2026-09-14): renderizar as 141 opções dispensa virtualização.
 
 **Constraints**:
 

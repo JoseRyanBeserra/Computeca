@@ -23,8 +23,6 @@ interface GrupoFiltrado {
   habilidades: BnccHabilidade[]
 }
 
-const MAX_POR_GRUPO = 8
-
 export function BnccHabilidadePicker({
   selected,
   onAdd,
@@ -39,7 +37,10 @@ export function BnccHabilidadePicker({
   const q = query.trim()
   const qLower = q.toLowerCase()
 
-  // Sugestões da BNCC que casam com a busca (código ou descrição) e ainda não selecionadas
+  // Sugestões da BNCC que casam com a busca (código ou descrição) e ainda não selecionadas.
+  // TODAS as correspondências são exibidas, sem limite por etapa: quem cadastra
+  // precisa ver o catálogo inteiro, não só as primeiras de cada grupo. A lista
+  // tem rolagem própria, e 141 itens dispensam virtualização.
   const grupos: GrupoFiltrado[] = useMemo(() => {
     return BNCC_COMPUTACAO
       .map((grupo) => ({
@@ -50,8 +51,7 @@ export function BnccHabilidadePicker({
             qLower
               ? h.codigo.toLowerCase().includes(qLower) || h.descricao.toLowerCase().includes(qLower)
               : true,
-          )
-          .slice(0, MAX_POR_GRUPO),
+          ),
       }))
       .filter((grupo) => grupo.habilidades.length > 0)
   }, [selected, qLower])
@@ -126,7 +126,7 @@ export function BnccHabilidadePicker({
         {open && !disabled && (
           <div
             role="listbox"
-            className="absolute z-20 mt-1 w-full max-h-72 overflow-auto rounded-xl border border-gray-200 dark:border-gray-700
+            className="absolute z-20 mt-1 w-full max-h-96 overflow-auto rounded-xl border border-gray-200 dark:border-gray-700
                        bg-white dark:bg-gray-900 shadow-lg py-1"
           >
             {grupos.map((grupo) => (
