@@ -11,18 +11,19 @@
 ## Sumário
 
 1. [Visão Geral](#1-visão-geral)
-2. [Stack Tecnológica](#2-stack-tecnológica)
-3. [Arquitetura e Infraestrutura](#3-arquitetura-e-infraestrutura)
-4. [Perfis e Permissões](#4-perfis-e-permissões)
-5. [Inteligência Pedagógica e IA](#5-inteligência-pedagógica-e-ia)
-6. [Gestão e Auditoria](#6-gestão-e-auditoria)
-7. [Log de Auditoria](#log-de-auditoria)
-8. [Integração com Serviço Externo](#integração-com-serviço-externo)
-9. [Cobertura de Testes](#cobertura-de-testes)
-10. [Observabilidade (OpenTelemetry)](#observabilidade-opentelemetry)
-11. [Como Executar — Desenvolvimento](#7-como-executar--desenvolvimento)
-12. [Como Executar — Produção](#8-como-executar--produção)
-13. [CI/CD](#9-cicd)
+2. [Funcionalidades do Acervo](#funcionalidades-do-acervo)
+3. [Stack Tecnológica](#2-stack-tecnológica)
+4. [Arquitetura e Infraestrutura](#3-arquitetura-e-infraestrutura)
+5. [Perfis e Permissões](#4-perfis-e-permissões)
+6. [Inteligência Pedagógica e IA](#5-inteligência-pedagógica-e-ia)
+7. [Gestão e Auditoria](#6-gestão-e-auditoria)
+8. [Log de Auditoria](#log-de-auditoria)
+9. [Integração com Serviço Externo](#integração-com-serviço-externo)
+10. [Cobertura de Testes](#cobertura-de-testes)
+11. [Observabilidade (OpenTelemetry)](#observabilidade-opentelemetry)
+12. [Como Executar — Desenvolvimento](#7-como-executar--desenvolvimento)
+13. [Como Executar — Produção](#8-como-executar--produção)
+14. [CI/CD](#9-cicd)
 
 ---
 
@@ -34,6 +35,26 @@ Esta plataforma centraliza, gerencia e dissemina **Materiais Instrucionais (MIs)
 - Busca semântica por significado e contexto nos documentos
 - Enriquecimento automático de conteúdo via Inteligência Artificial
 - Controle granular de acesso por perfil de usuário
+
+> **Legenda de status** usada nas seções abaixo: ✅ implementado · 🟡 parcial · 🕓 planejado (ainda não implementado).
+
+---
+
+## Funcionalidades do Acervo
+
+O que um Material Instrucional (MI) oferece hoje, de ponta a ponta. Cada funcionalidade entregue pelo fluxo speckit tem especificação, plano e tasks em [`specs/`](specs/).
+
+| Funcionalidade | Descrição | Spec |
+| :-- | :-- | :-- |
+| **Cadastro de MI** | Envio de PDF (até 50 MB, validado por *magic bytes*) com **título** (até 255) e **descrição** (50 a 2000 caracteres) obrigatórios. Pode ser feito direto (`POST /mis`) ou dentro de um projeto (`POST /organizations/:orgId/mis`) — os dois caminhos compartilham parse e validação. | [`003`](specs/003-material-description/) |
+| **Habilidades BNCC** | Seleção opcional das habilidades da BNCC de Computação, com busca por código ou descrição e habilidade personalizada. Filtro por habilidade na listagem. | — |
+| **Links relacionados** | Até **10** links opcionais (nome até 60 caracteres + endereço `http`/`https`), exibidos como botões abaixo da descrição. Endereços com `javascript:`, `data:`, `file:` e `ftp:` são recusados no servidor; os botões abrem em nova aba isolada da origem (`noopener noreferrer`). | [`004`](specs/004-material-links/) |
+| **Pré-visualização do PDF** | Documento embutido na tela de detalhes, com acesso por URL pré-assinada renovada antes de expirar. Em telas estreitas o PDF não é carregado. | [`002`](specs/002-pdf-preview/) |
+| **Fluxo de aprovação docente** | Material enviado entra como *aguardando revisão*; Professor/Admin aprova ou rejeita. | — |
+| **Edição pelo Admin** | `PUT /mis/:id` altera título, descrição, habilidades e links, e opcionalmente **substitui o PDF** (com confirmação explícita; material aprovado volta para revisão). Cada edição grava o que mudou, com valor anterior e novo. | [`005`](specs/005-material-edit/) |
+| **Remoção do acervo** | *Soft delete* por Professor/Admin — o material some das listagens, mas o registro permanece. | — |
+| **Projetos (organizações)** | Criação de projetos, convites por e-mail, membros e materiais vinculados ao projeto. | — |
+| **Recursos de IA** | Resumo automático e chat (RAG) sobre o PDF, com interruptor global. Ver [Inteligência Pedagógica e IA](#5-inteligência-pedagógica-e-ia). | [`001`](specs/001-disable-ai-features/) |
 
 ---
 
@@ -73,29 +94,30 @@ Internet
 
 ## 4. Perfis e Permissões
 
-| Perfil                 | Permissões                                                                           |
-| :--------------------- | :----------------------------------------------------------------------------------- |
-| **Não Logado**         | Consulta e visualização de materiais públicos apenas.                                |
-| **Usuário Logado**     | Consultas, favoritos, coleções personalizadas e interação com recursos de IA.        |
-| **Institucionalizado** | Submissão de MIs para o fluxo de aprovação docente.                                  |
-| **Professor / Admin**  | Upload direto, aprovação de submissões de terceiros e gestão completa de permissões. |
+| Perfil                 | Permissões                                                                           | Status |
+| :--------------------- | :----------------------------------------------------------------------------------- | :----- |
+| **Não Logado**         | Consulta e visualização de materiais públicos apenas.                                | 🟡 Hoje a listagem (`GET /mis/public`) exige login; o visitante vê o convite para entrar. |
+| **Usuário Logado**     | Consultas, favoritos, coleções personalizadas e interação com recursos de IA.        | 🟡 Consultas e IA ✅ · favoritos e coleções 🕓 |
+| **Institucionalizado** | Submissão de MIs para o fluxo de aprovação docente.                                  | ✅ |
+| **Professor / Admin**  | Upload direto, aprovação de submissões de terceiros e gestão completa de permissões. | ✅ Edição de materiais é exclusiva do **Admin**. |
 
 ---
 
 ## 5. Inteligência Pedagógica e IA
 
-- **Análise BNCC Computação:** Identificação automática das habilidades da BNCC de Computação contempladas pelo material.
-- **Tradução Multilíngue:** Geração automatizada de resumos em **Inglês** e **Espanhol**, preservando a integridade técnica.
-- **Observabilidade de IA:** Rastreio detalhado de consumo de tokens por usuário e por operação.
-- **Modularidade:** Painel administrativo para habilitar ou desabilitar funcionalidades de IA sem redeploy.
+- ✅ **Resumo automático e chat com o PDF (RAG):** resumo gerado sob demanda e cacheado no material; chat com guardrails de *prompt injection* e moderação, respondendo a partir dos trechos recuperados no Qdrant.
+- 🟡 **Análise BNCC Computação:** Identificação automática das habilidades da BNCC de Computação contempladas pelo material. *Hoje as habilidades são selecionadas manualmente no cadastro; a identificação automática por IA está planejada.*
+- 🕓 **Tradução Multilíngue:** Geração automatizada de resumos em **Inglês** e **Espanhol**, preservando a integridade técnica. *O resumo atual é gerado apenas em português.*
+- ✅ **Observabilidade de IA:** Rastreio de consumo de tokens por usuário e por operação, via atributos `ia.*` e `usuario.id` nos spans do OpenTelemetry (ver [Observabilidade](#observabilidade-opentelemetry)).
+- ✅ **Modularidade:** Painel administrativo para habilitar ou desabilitar funcionalidades de IA sem redeploy, subordinado ao interruptor `AI_FEATURES_ENABLED`.
 
 ---
 
 ## 6. Gestão e Auditoria
 
-- **Fluxo de Aprovação Docente:** Revisão obrigatória por professores para todo material submetido por perfis institucionalizados.
-- **Auditabilidade Total:** Logs completos — quem enviou, quem aprovou, quando e o que foi alterado.
-- **Métricas de Engajamento:** Dashboard com estatísticas de consumo, termos mais buscados e ranking de MIs mais acessados.
+- ✅ **Fluxo de Aprovação Docente:** Revisão obrigatória por professores para todo material submetido por perfis institucionalizados.
+- ✅ **Auditabilidade Total:** Logs completos — quem enviou, quem aprovou, quando e o que foi alterado (a edição registra cada campo com valor anterior e novo).
+- 🟡 **Métricas de Engajamento:** Dashboard com estatísticas de consumo, termos mais buscados e ranking de MIs mais acessados. *O painel administrativo já exibe totais de usuários, materiais aprovados, pendentes e projetos ativos; o registro de buscas e acessos para os rankings está planejado.*
 
 ---
 
@@ -111,6 +133,9 @@ O sistema mantém uma trilha de auditoria das ações sensíveis dos usuários.
   | `USER_PROMOTED_TO_PROFESSOR` | Admin promove usuário a Professor              |
   | `ORGANIZATION_CREATED`       | Criação de um projeto/organização              |
   | `MI_APPROVED` / `MI_REJECTED`| Revisão docente de um material instrucional    |
+  | `MI_UPDATED`                 | Edição de um material pelo Admin — `metadata` guarda só os campos alterados, com `from`/`to` (título, descrição, habilidades, links, arquivo e situação) |
+  | `MI_DELETED`                 | Remoção (*soft delete*) de um material         |
+  | `AI_AVAILABILITY_CHANGED`    | Admin liga ou desliga os recursos de IA no painel |
 
 - **Onde fica armazenado** — tabela **`AuditLog`** no PostgreSQL (via Prisma). Campos principais:
   `id`, `actorId` (quem fez), `actorRole`, `targetId` (alvo da ação), `action`, `metadata` (JSON com contexto), `createdAt`.
@@ -125,6 +150,9 @@ O sistema mantém uma trilha de auditoria das ações sensíveis dos usuários.
   - [`MI-server/src/services/users/setUserAsProfessorService.ts`](MI-server/src/services/users/setUserAsProfessorService.ts) — promoção
   - [`MI-server/src/services/organizations/createOrganizationService.ts`](MI-server/src/services/organizations/createOrganizationService.ts) — criação de projeto
   - [`MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts`](MI-server/src/services/resources/materials/pdf/materialPdfReviewService.ts) — aprovação/rejeição
+  - [`MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts`](MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts) — edição (diff calculado por [`buildMaterialEditDiff.ts`](MI-server/src/utils/buildMaterialEditDiff.ts))
+  - [`MI-server/src/services/resources/materials/pdf/materialPdfDeleteService.ts`](MI-server/src/services/resources/materials/pdf/materialPdfDeleteService.ts) — remoção
+  - [`MI-server/src/services/config/updateAiAvailabilityService.ts`](MI-server/src/services/config/updateAiAvailabilityService.ts) — interruptor de IA
 
 > Complementarmente, há o **`InspectionLog`** (`model InspectionLog`) que rastreia o ciclo de vida das requisições HTTP (cliente→API→cliente), visível na tela administrativa `/admin/logs` do frontend.
 
@@ -148,6 +176,7 @@ O sistema integra-se com **serviços externos reais** via SDK, todos configurado
 - **Arquivos participantes:**
   - [`MI-server/src/lib/minio.ts`](MI-server/src/lib/minio.ts) — `new Client({ endPoint, ... })` (SDK `minio`)
   - [`MI-server/src/services/resources/materials/pdf/materialPdfUploadService.ts`](MI-server/src/services/resources/materials/pdf/materialPdfUploadService.ts) — `minioClient.putObject`
+  - [`MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts`](MI-server/src/services/resources/materials/pdf/materialPdfEditService.ts) — substituição do PDF (grava sob chave nova e só então remove o antigo)
   - [`MI-server/src/services/resources/materials/pdf/materialPdfPresignedUrlService.ts`](MI-server/src/services/resources/materials/pdf/materialPdfPresignedUrlService.ts) — `minioPublicClient.presignedGetObject`
 - **Configuração (env):** `MINIO_ENDPOINT`, `MINIO_PORT`, `MINIO_USE_SSL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_REGION` (+ `MINIO_PUBLIC_*` para URLs públicas)
 
@@ -360,6 +389,8 @@ O `start.sh` sobe três processos: Nginx (frontend), o **worker de vetorização
 - Node.js 20+
 - Docker e Docker Compose
 
+> ⚠️ **Não copie `node_modules` entre sistemas operacionais.** Prisma, esbuild e Tailwind baixam binários nativos do SO em que o `npm install` rodou — pastas instaladas no Windows não funcionam no Linux/macOS, e vice-versa. Ao trocar de máquina, apague `node_modules` e rode `npm install` de novo.
+
 ### Backend (MI-server)
 
 ```bash
@@ -374,6 +405,8 @@ cp .env.example .env
 
 # Subir a infraestrutura via Docker (PostgreSQL, MinIO e observabilidade)
 docker compose up -d
+# Só o essencial, sem o Grafana (imagem de alguns GB):
+#   docker compose up -d db minio
 
 # Executar migrations e seed
 npm run db:migrate
@@ -381,6 +414,39 @@ npm run db:seed
 
 # Iniciar servidor em modo desenvolvimento
 npm run dev
+```
+
+> ⚠️ **Imagem do MinIO:** a imagem `minio/minio` deixou de ser publicada no Docker Hub, e o `docker compose up` falha com *pull access denied*. A mesma imagem continua disponível no Quay. Enquanto o `docker-compose.yml` não for atualizado, baixe-a e dê a ela o nome esperado:
+>
+> ```bash
+> docker pull quay.io/minio/minio:latest
+> docker tag quay.io/minio/minio:latest minio/minio:latest
+> ```
+
+O `npm run db:seed` cria o administrador inicial com o `ADMIN_EMAIL` e o `ADMIN_PASSWORD` do `.env` (só quando ainda não existe nenhum admin).
+
+#### Ferramentas úteis
+
+| Comando | O que faz |
+| :-- | :-- |
+| `npm run db:studio` | Abre o **Prisma Studio** para ver e editar o banco — o endereço aparece no terminal (padrão do Prisma 7: <http://localhost:51212>) |
+| `docker ps` | Lista os containers em execução |
+| `docker exec -it mi-postgres psql -U postgres -d mi_db` | Abre o `psql` dentro do container do banco |
+| `docker logs -f mi-postgres` | Acompanha os logs de um container |
+| Console do MinIO | <http://localhost:9001> (`minioadmin` / `minioadmin`) |
+
+#### Testes
+
+```bash
+cd MI-server
+npm run test:unit          # sem banco
+
+# Integração: usa o banco separado mi_db_test (as migrations são aplicadas automaticamente)
+docker exec mi-postgres psql -U postgres -c "CREATE DATABASE mi_db_test"   # só na primeira vez
+npm run test:integration   # requer Postgres e MinIO no ar
+
+cd ../front
+npm test
 ```
 
 ### Funcionalidades de IA — interruptor de dois níveis
