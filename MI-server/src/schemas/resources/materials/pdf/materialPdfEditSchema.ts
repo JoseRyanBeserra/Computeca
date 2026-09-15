@@ -11,6 +11,7 @@ import {
   titleSchema,
   descriptionSchema,
   habilidadesBnccSchema,
+  relatedLinksSchema,
 } from './materialPdfUploadSchema'
 
 /**
@@ -29,6 +30,8 @@ export const materialPdfEditSchema = z.object({
   title:           titleSchema,
   description:     descriptionSchema,
   habilidadesBncc: habilidadesBnccSchema,
+  // Mesmo schema do cadastro: esquema perigoso não entra pela porta da edição.
+  relatedLinks:    relatedLinksSchema,
   editedById:      z.string().uuid(),
 })
 

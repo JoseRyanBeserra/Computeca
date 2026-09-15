@@ -1,6 +1,12 @@
 // src/@types/resources/materials/pdf/index.ts
 import type { MIStatus, VectorStatus } from '@prisma/client'
 
+/** Link relacionado ao material: exibido pelo rótulo, aberto pelo endereço. */
+export interface IMaterialLink {
+  label: string
+  url: string
+}
+
 /** Payload interno passado do controller para o service */
 export interface UploadMIInput {
   title: string
@@ -11,6 +17,8 @@ export interface UploadMIInput {
   mimeType: string
   /** Habilidades BNCC — opcional; quando ausente assume-se lista vazia */
   habilidadesBncc?: string[]
+  /** Links relacionados — opcionais; quando ausentes assume-se lista vazia */
+  relatedLinks?: IMaterialLink[]
   uploadedById: string
   organizationIds?: string[]
 }
@@ -27,6 +35,8 @@ export interface EditMIInput {
   title: string
   description: string
   habilidadesBncc?: string[]
+  /** Conjunto completo dos links: ausente equivale a lista vazia, como as habilidades */
+  relatedLinks?: IMaterialLink[]
   /** Ausente = manter o documento atual */
   buffer?: Buffer
   originalFileName?: string
@@ -53,6 +63,8 @@ export interface IPendingMaterial {
   status: MIStatus
   vectorStatus?: VectorStatus // omitido nas respostas quando a IA esta desativada (FR-017)
   habilidadesBncc: string[]
+  /** Sempre presente: material sem links devolve `[]`, nunca `null` */
+  relatedLinks: IMaterialLink[]
   uploadedById: string
   uploadedBy: { name: string; email: string }
   organizations: { organization: { id: string; name: string } }[]
@@ -101,6 +113,12 @@ export interface IUploadedMI {
   sizeBytes: number
   status: MIStatus
   habilidadesBncc: string[]
+  /**
+   * Presente — e nunca `null` — onde o material é criado, lido ou editado.
+   * Opcional porque, como `description`, as respostas de revisão e das listagens
+   * resumidas não o selecionam.
+   */
+  relatedLinks?: IMaterialLink[]
   uploadedById: string
   createdAt: Date
   updatedAt: Date

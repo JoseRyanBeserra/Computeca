@@ -13,11 +13,18 @@ export interface FieldChange<T> {
   to:   T
 }
 
+/** Um link relacionado, como aparece no registro de auditoria. */
+export interface MaterialLinkValue {
+  label: string
+  url:   string
+}
+
 export interface MaterialEditDiff {
   changed: string[]
   title?:           FieldChange<string>
   description?:     FieldChange<string | null>
   habilidadesBncc?: FieldChange<string[]>
+  relatedLinks?:    FieldChange<MaterialLinkValue[]>
   file?: FieldChange<{ storageKey: string; originalFileName: string }>
   status?:          FieldChange<string>
 }
@@ -27,6 +34,8 @@ export interface MaterialEditSnapshot {
   title:            string
   description?:     string | null
   habilidadesBncc:  string[]
+  /** Ausente equivale a lista vazia. */
+  relatedLinks?:    MaterialLinkValue[]
   storageKey:       string
   originalFileName: string
   status:           string
@@ -36,6 +45,8 @@ export interface MaterialEditIncoming {
   title:           string
   description:     string
   habilidadesBncc: string[]
+  /** Ausente equivale a lista vazia. */
+  relatedLinks?:   MaterialLinkValue[]
 }
 
 /** Substituição de documento, quando houve. */
@@ -53,6 +64,11 @@ export interface FileReplacement {
  */
 function habilidadesIguais(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((item, i) => item === b[i])
+}
+
+/** Mesma regra das habilidades: conteúdo e ordem, que é a ordem de exibição. */
+function linksIguais(a: MaterialLinkValue[], b: MaterialLinkValue[]): boolean {
+  return a.length === b.length && a.every((link, i) => link.label === b[i].label && link.url === b[i].url)
 }
 
 export function buildMaterialEditDiff(
@@ -81,6 +97,13 @@ export function buildMaterialEditDiff(
   if (!habilidadesIguais(atual.habilidadesBncc, novo.habilidadesBncc)) {
     diff.changed.push('habilidadesBncc')
     diff.habilidadesBncc = { from: atual.habilidadesBncc, to: novo.habilidadesBncc }
+  }
+
+  const linksAtuais = atual.relatedLinks ?? []
+  const linksNovos  = novo.relatedLinks ?? []
+  if (!linksIguais(linksAtuais, linksNovos)) {
+    diff.changed.push('relatedLinks')
+    diff.relatedLinks = { from: linksAtuais, to: linksNovos }
   }
 
   if (arquivo) {

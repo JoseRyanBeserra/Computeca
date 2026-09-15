@@ -2,6 +2,7 @@
 import { Prisma, type MIStatus } from '@prisma/client'
 import { prisma } from '../../../../database/prisma'
 import type { IPendingMaterial } from '../../../../@types/resources/materials/pdf'
+import { withRelatedLinks } from '../../../../utils/readStoredRelatedLinks'
 
 export interface AllMaterialsParams {
   status?:  MIStatus
@@ -31,6 +32,7 @@ const MI_SELECT = {
   mimeType:         true,
   sizeBytes:        true,
   habilidadesBncc:  true,
+  relatedLinks:     true,
   status:           true,
   vectorStatus:     true,
   uploadedById:     true,
@@ -94,5 +96,5 @@ export async function findAllMaterials(
     prisma.materialInstrucional.count({ where }),
   ])
 
-  return { materials, total, page, perPage }
+  return { materials: materials.map(withRelatedLinks), total, page, perPage }
 }

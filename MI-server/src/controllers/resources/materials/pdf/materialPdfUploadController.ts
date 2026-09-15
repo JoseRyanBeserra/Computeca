@@ -7,6 +7,7 @@ import { ERRORS, buildError } from '../../../../lib/errors/errors'
 import { GeneralErrorResponse } from '../../../../errors/GeneralErrorResponse'
 import { logger } from '../../../../lib/logger'
 import { parseMaterialMultipart } from './shared/parseMaterialMultipart'
+import type { IMaterialLink } from '../../../../@types/resources/materials/pdf'
 
 const ctx = 'materialPdfUploadController'
 
@@ -21,6 +22,7 @@ const ctx = 'materialPdfUploadController'
  *   - file  : arquivo PDF (obrigatório, campo "file")
  *   - title       : título do material (OBRIGATÓRIO, até 255 caracteres)
  *   - description : descrição do material (OBRIGATÓRIA, 50 a 2000 caracteres)
+ *   - relatedLinks: array JSON de { label, url } (opcional, até 10, só http/https)
  *
  * Middlewares aplicados na rota:
  *   preHandler: [authenticate, requireUploadPermission]
@@ -32,7 +34,7 @@ export async function materialPdfUploadController(
   logger.info(`IN - ${ctx}`)
 
   try {
-    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc, organizationIds } =
+    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc, relatedLinks, organizationIds } =
       await parseMaterialMultipart(request)
 
     if (!fileBuffer || !originalFileName || !mimeType) {
@@ -49,6 +51,8 @@ export async function materialPdfUploadController(
       originalFileName,
       mimeType,
       habilidadesBncc,
+      // Ainda não validados: o schema do service recusa com 422 o que não servir.
+      relatedLinks:    relatedLinks as IMaterialLink[],
       uploadedById:    request.user.sub,
       organizationIds,
     })

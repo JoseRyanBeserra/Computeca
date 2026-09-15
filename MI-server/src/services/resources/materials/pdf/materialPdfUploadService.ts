@@ -48,7 +48,7 @@ export async function materialPdfUploadService(input: UploadMIInput): Promise<IU
   // convertido em 422 pelo errorHandler global. Validar aqui — e não só no
   // controller — é o que garante que uma chamada interna com entrada inválida
   // também seja recusada.
-  const { title, description, habilidadesBncc, uploadedById, organizationIds } =
+  const { title, description, habilidadesBncc, relatedLinks, uploadedById, organizationIds } =
     validateRequest(input, materialPdfUploadSchema)
 
   const { buffer, originalFileName, mimeType } = input
@@ -122,6 +122,7 @@ export async function materialPdfUploadService(input: UploadMIInput): Promise<IU
           mimeType,
           sizeBytes: buffer.length,
           habilidadesBncc,
+          relatedLinks,
           uploadedById,
         }),
       )

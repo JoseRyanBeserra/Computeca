@@ -248,6 +248,29 @@ Nullable no banco, obrigatória na entrada. `null` significa **"cadastrado antes
 não vazio — o schema recusa string vazia, então nenhum material novo chega a `''`. A tela de
 detalhes usa essa distinção para indicar ausência sem parecer erro.
 
+### Links relacionados (`relatedLinks`)
+
+Lista **opcional** de `{ label, url }`, numa coluna `Json` não anulável com padrão `[]`.
+
+| Regra | Valor |
+| --- | --- |
+| Quantidade | no máximo **10** por material |
+| `label` | 1 a **60** caracteres, após `trim` |
+| `url` | bem formada **e** com protocolo `http:` ou `https:` |
+| Endereço repetido | aceito — dois rótulos podem apontar ao mesmo lugar |
+
+- **A armadilha do `.url()`**: `z.string().url()` sozinho **aceita** `javascript:alert(1)`, `data:`,
+  `file:` e `ftp:` — ele confere forma, não segurança. Todo campo de URL que vira link clicável
+  precisa da segunda etapa: comparar `new URL(v).protocol` com uma lista permitida. **Nunca** por
+  prefixo de string. Ver `relatedLinkSchema` em `materialPdfUploadSchema.ts`.
+- **Trânsito no multipart**: um array JSON numa única parte do campo `relatedLinks`. JSON
+  malformado vira `[]` com `logger.warn`; JSON válido que não é lista segue para o schema recusar.
+- **Leitura defensiva**: repositório que seleciona a coluna passa o resultado por
+  `withRelatedLinks` (`utils/readStoredRelatedLinks.ts`). Conteúdo fora do formato no banco vira
+  `[]` em vez de derrubar a tela ou exibir um endereço que o cadastro recusaria.
+- A edição usa o **mesmo** `relatedLinksSchema`, e a lista enviada é o conjunto completo: ausente ou
+  vazia remove todos os links. A alteração entra no diff de auditoria como os demais campos.
+
 ---
 
 ## Edição de material — `PUT /mis/:id`
@@ -256,7 +279,7 @@ Restrita a **ADMIN, e somente ele**: nem PROFESSOR, nem o autor do material. Aut
 de alterar.
 
 O corpo carrega o **conjunto completo** dos metadados editáveis (`title`, `description`,
-`habilidadesBncc`), nunca um subconjunto: campo opcional tornaria "omiti a descrição"
+`habilidadesBncc`, `relatedLinks`), nunca um subconjunto: campo opcional tornaria "omiti a descrição"
 indistinguível de "mantenha a atual", e uma descrição inválida atravessaria a edição sem ser
 conferida. O schema **importa** `titleSchema` e `descriptionSchema` do cadastro — não os redeclara.
 

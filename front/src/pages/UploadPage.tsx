@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { AppShell } from '../components/AppShell'
 import { BnccHabilidadePicker } from '../components/BnccHabilidadePicker'
+import { MaterialLinkPicker } from '../components/MaterialLinkPicker'
 import { canUploadMaterials } from '../lib/permissions'
 
 import {
@@ -22,7 +23,7 @@ import {
 import { useUploadMaterial } from '../features/materials/hooks/useUploadMaterial'
 import { useMyOrganizations } from '../features/organizations/hooks/useMyOrganizations'
 import { getApiErrorCode, getApiErrorMessage } from '../lib/apiError'
-import type { UploadedMI } from '../features/materials/api/materialsApi'
+import type { MaterialLink, UploadedMI } from '../features/materials/api/materialsApi'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -217,6 +218,7 @@ export function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [habilidadesBncc, setHabilidadesBncc] = useState<string[]>([])
+  const [relatedLinks, setRelatedLinks] = useState<MaterialLink[]>([])
   const [selectedOrgId, setSelectedOrgId] = useState('')
 
   function addHabilidade(value: string) {
@@ -263,6 +265,7 @@ export function UploadPage() {
       title: title.trim(),
       description: descricaoAparada,
       habilidadesBncc: habilidadesBncc.length ? habilidadesBncc : undefined,
+      relatedLinks: relatedLinks.length ? relatedLinks : undefined,
       organizationId: selectedOrgId || undefined,
     })
   }
@@ -272,6 +275,7 @@ export function UploadPage() {
     setTitle('')
     setDescription('')
     setHabilidadesBncc([])
+    setRelatedLinks([])
     setSelectedOrgId('')
     reset()
   }
@@ -405,6 +409,20 @@ export function UploadPage() {
                     selected={habilidadesBncc}
                     onAdd={addHabilidade}
                     onRemove={removeHabilidade}
+                    disabled={isUploading || !canUpload}
+                  />
+                </div>
+
+                {/* Links relacionados */}
+                <div className="space-y-1.5">
+                  <label htmlFor="mi-link-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Links relacionados
+                    <span className="ml-1 text-xs text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+                  </label>
+                  <MaterialLinkPicker
+                    idPrefix="mi-link"
+                    links={relatedLinks}
+                    onChange={setRelatedLinks}
                     disabled={isUploading || !canUpload}
                   />
                 </div>

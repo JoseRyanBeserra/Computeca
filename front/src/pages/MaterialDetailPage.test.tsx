@@ -281,4 +281,46 @@ describe('MaterialDetailPage', () => {
       expect(elemento.textContent).toContain('\n\n')
     })
   })
+
+  // Feature 004 — links relacionados.
+  describe('links relacionados', () => {
+    const DESCRICAO = 'Descrição do material com conteúdo suficiente para a exibição no detalhe.'
+    const LINKS = [
+      { label: 'Videoaula', url: 'https://exemplo.org/aula' },
+      { label: 'Planilha',  url: 'https://exemplo.org/planilha' },
+    ]
+
+    it('aparecem como botões abaixo da descrição e acima da pré-visualização', async () => {
+      mockApi.get.mockImplementation((url: string) => {
+        if (url === '/mis/m1') {
+          return Promise.resolve({ data: material({ description: DESCRICAO, relatedLinks: LINKS }) })
+        }
+        return Promise.resolve({ data: { url: 'https://armazenamento/geo.pdf', expiresInSeconds: 3600 } })
+      })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      const videoaula = await screen.findByRole('link', { name: /Videoaula/ })
+      expect(screen.getByRole('link', { name: /Planilha/ })).toHaveAttribute('href', 'https://exemplo.org/planilha')
+
+      const descricao = screen.getByText(DESCRICAO)
+      expect(descricao.compareDocumentPosition(videoaula) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+      await waitFor(() => expect(document.querySelector('object[type="application/pdf"]')).not.toBeNull())
+      const preview = document.querySelector('object[type="application/pdf"]')!
+      expect(videoaula.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it.each([
+      ['lista vazia', { relatedLinks: [] }],
+      ['campo ausente', {}],
+    ])('com %s, nada é renderizado — nem o rótulo da seção', async (_caso, overrides) => {
+      mockApi.get.mockResolvedValue({ data: material(overrides) })
+
+      renderWithProviders(<MaterialDetailPage />, { route: '/materials/m1', path: '/materials/:id' })
+
+      await screen.findByText('Guia de Geometria')
+      expect(screen.queryByText(/Links relacionados/i)).not.toBeInTheDocument()
+    })
+  })
 })

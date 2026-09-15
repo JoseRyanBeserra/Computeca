@@ -75,6 +75,24 @@ A validação de verdade continua no servidor.
 Selecionar o arquivo pré-preenche o título com o nome dele — sugestão editável, distinta do
 servidor adivinhar (ele não faz mais isso). Em teste, lembre de limpar o campo antes de digitar.
 
+## Chips e links relacionados
+
+- **O estilo do chip vive em `components/chipStyles.ts`** (`chipClasses('indigo' | 'gray' | 'teal')`).
+  `HabilidadesBncc` e os links consomem de lá. **Nunca copie as classes** para um componente novo:
+  a especificação exige que o botão de link tenha a mesma aparência do chip de habilidade, e cópias
+  divergem no primeiro ajuste de cor.
+- Na tela de detalhes, `components/MaterialLinks.tsx` exibe os links abaixo da descrição. **Sem
+  links, não renderiza nada** — nem rótulo. Cada link abre com `target="_blank"` e
+  `rel="noopener noreferrer"`, e revela o endereço no `title`. Não remova nenhum dos três.
+- Nos formulários, `components/MaterialLinkPicker.tsx` confere as regras **ao acrescentar**
+  (rótulo até 60, `http`/`https`, máximo 10 — limites em `features/materials/constants.ts`). É
+  conveniência: a proteção está no servidor.
+- O picker está no envio direto (`UploadPage`) e na edição (`MaterialEditPage`). O formulário por
+  projeto (`OrganizationDetailPage`) ainda não o tem — assim como não tem habilidades; o servidor já
+  aceita o campo por essa rota.
+- Envio: `relatedLinks` segue como **array JSON numa única parte**. No cadastro, omitido quando
+  vazio; na edição, **sempre** — `[]` é o que remove todos.
+
 ## Edição de material
 
 `pages/MaterialEditPage.tsx`, rota `/materials/:id/edit`, guardada por `AdminRoute`.

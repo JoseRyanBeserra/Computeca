@@ -35,7 +35,7 @@ export async function materialPdfEditService(
   // Validação na fronteira do service (Princípio I). O ZodError resultante vira
   // 422 no errorHandler global. Validar aqui — e não só no controller — recusa
   // também a chamada interna inválida.
-  const { materialId, title, description, habilidadesBncc, editedById } =
+  const { materialId, title, description, habilidadesBncc, relatedLinks, editedById } =
     validateRequest(input, materialPdfEditSchema)
   const { actorRole, buffer, originalFileName, mimeType } = input
 
@@ -96,11 +96,12 @@ export async function materialPdfEditService(
       title:            material.title,
       description:      material.description,
       habilidadesBncc:  material.habilidadesBncc,
+      relatedLinks:     material.relatedLinks ?? [],
       storageKey:       material.storageKey,
       originalFileName: material.originalFileName,
       status:           material.status,
     },
-    { title, description, habilidadesBncc },
+    { title, description, habilidadesBncc, relatedLinks },
     arquivoParaDiff,
   )
 
@@ -118,6 +119,7 @@ export async function materialPdfEditService(
       title,
       description,
       habilidadesBncc,
+      relatedLinks,
       ...(trocaDocumento
         ? {
             storageKey:          chaveNova,

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { HabilidadesBncc } from '../components/HabilidadesBncc'
+import { MaterialLinks } from '../components/MaterialLinks'
 import { useAuth } from '../context/AuthContext'
 import { isSysAdmin } from '../lib/permissions'
 import { canUseAiChat } from '../lib/permissions'
@@ -297,6 +298,14 @@ function DetailContent({ material }: { material: PendingMaterial }) {
           </p>
         )}
       </div>
+
+      {/* Links relacionados — abaixo da descrição, acima do documento. Sem links,
+          o componente não renderiza nada: nem rótulo, nem espaço (FR-007). */}
+      {(material.relatedLinks?.length ?? 0) > 0 && (
+        <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+          <MaterialLinks links={material.relatedLinks ?? []} />
+        </div>
+      )}
 
       {/* Recursos de IA — resumo quando pronto, ou aviso de processamento/falha */}
       <PdfPreview

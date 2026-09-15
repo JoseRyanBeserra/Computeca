@@ -19,3 +19,9 @@ export const DESCRIPTION_MAX_LENGTH = 2000
 
 /** Título: obrigatório, no máximo 255 caracteres após aparar as pontas. */
 export const TITLE_MAX_LENGTH = 255
+
+/** Links relacionados: opcionais, no máximo 10 por material. */
+export const RELATED_LINKS_MAX = 10
+
+/** Nome do link: obrigatório, no máximo 60 caracteres após aparar as pontas. */
+export const RELATED_LINK_LABEL_MAX_LENGTH = 60

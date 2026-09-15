@@ -126,6 +126,8 @@ model MaterialInstrucional {
                              // exigência — null significa "cadastrado antes da regra", não vazio.
                              // Cadastros novos exigem 50 a 2000 caracteres, imposto no schema de entrada.
   habilidadesBncc    String[]      @default([]) // códigos/nomes de habilidades da BNCC associadas ao material
+  relatedLinks       Json          @default("[]") // links relacionados: lista de { label, url }, no máximo 10.
+                                                    // Não anulável: nunca ter informado e ter informado zero são a mesma coisa.
   status             MIStatus      @default(PENDING_REVIEW)
   vectorStatus       VectorStatus  @default(PENDING)
   summary            String? // resumo gerado por IA (null até a primeira geração)

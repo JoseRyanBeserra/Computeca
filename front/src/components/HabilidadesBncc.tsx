@@ -3,6 +3,7 @@
 // Em listagens, limite a quantidade com `max` (mostra "+N" para o restante);
 // na tela de detalhe, passe `max={0}` para exibir todas.
 import { GraduationCap } from 'lucide-react'
+import { chipClasses } from './chipStyles'
 
 interface HabilidadesBnccProps {
   habilidades: string[]
@@ -28,19 +29,13 @@ export function HabilidadesBncc({ habilidades, max = 3, withLabel = false }: Hab
       )}
       <div className="flex flex-wrap gap-1.5">
         {shown.map((habilidade) => (
-          <span
-            key={habilidade}
-            className="inline-flex items-center rounded-md border border-indigo-200 dark:border-indigo-800
-                       bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300
-                       px-2 py-0.5 text-[11px] font-medium"
-          >
+          <span key={habilidade} className={chipClasses('indigo')}>
             {habilidade}
           </span>
         ))}
         {rest > 0 && (
           <span
-            className="inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 text-[11px] font-medium"
+            className={chipClasses('gray')}
             title={habilidades.slice(max).join(', ')}
           >
             +{rest}

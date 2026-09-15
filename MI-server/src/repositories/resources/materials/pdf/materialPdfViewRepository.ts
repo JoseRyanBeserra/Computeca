@@ -1,6 +1,7 @@
 // src/repositories/resources/materials/pdf/materialPdfViewRepository.ts
 import { prisma } from '../../../../database/prisma'
 import type { IPendingMaterial, IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import { withRelatedLinks } from '../../../../utils/readStoredRelatedLinks'
 
 const MI_SELECT = {
   id:               true,
@@ -11,6 +12,7 @@ const MI_SELECT = {
   mimeType:         true,
   sizeBytes:        true,
   habilidadesBncc:  true,
+  relatedLinks:     true,
   status:           true,
   uploadedById:     true,
   createdAt:        true,
@@ -19,15 +21,16 @@ const MI_SELECT = {
 
 export async function findMaterialById(id: string): Promise<IUploadedMI | null> {
   // findFirst (não findUnique) para poder filtrar por deletedAt — soft delete oculta o material
-  return prisma.materialInstrucional.findFirst({
+  const mi = await prisma.materialInstrucional.findFirst({
     where:  { id, deletedAt: null },
     select: MI_SELECT,
   })
+  return mi && withRelatedLinks(mi)
 }
 
 // Inclui os dados do autor e organizações — usado na tela de detalhe de um material específico
 export async function findMaterialDetailById(id: string): Promise<IPendingMaterial | null> {
-  return prisma.materialInstrucional.findFirst({
+  const mi = await prisma.materialInstrucional.findFirst({
     where:  { id, deletedAt: null },
     select: {
       ...MI_SELECT,
@@ -36,4 +39,5 @@ export async function findMaterialDetailById(id: string): Promise<IPendingMateri
       organizations: { select: { organization: { select: { id: true, name: true } } } },
     },
   })
+  return mi && withRelatedLinks(mi)
 }

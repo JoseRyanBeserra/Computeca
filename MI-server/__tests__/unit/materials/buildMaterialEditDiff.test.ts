@@ -135,4 +135,51 @@ describe('buildMaterialEditDiff', () => {
     expect(diff.changed).toEqual(['file'])
     expect(diff.status).toBeUndefined()
   })
+
+  // ── Feature 004: links relacionados na edição ──────────────────────────────
+
+  describe('links relacionados', () => {
+    const videoaula = { label: 'Videoaula', url: 'https://exemplo.org/aula' }
+    const artigo    = { label: 'Artigo',    url: 'https://exemplo.org/artigo' }
+
+    it('ausentes dos dois lados não são alteração — acervo anterior à feature', () => {
+      const diff = buildMaterialEditDiff(atual, mesmaEntrada)
+
+      expect(diff.changed).toEqual([])
+      expect(diff.relatedLinks).toBeUndefined()
+    })
+
+    it('lista vazia equivale a ausente', () => {
+      const diff = buildMaterialEditDiff(atual, { ...mesmaEntrada, relatedLinks: [] })
+
+      expect(diff.changed).toEqual([])
+    })
+
+    it('mesmos links na mesma ordem não são alteração', () => {
+      const diff = buildMaterialEditDiff(
+        { ...atual, relatedLinks: [videoaula, artigo] },
+        { ...mesmaEntrada, relatedLinks: [{ ...videoaula }, { ...artigo }] },
+      )
+
+      expect(diff.changed).toEqual([])
+    })
+
+    it('registra acréscimo, remoção, reordenação e troca de endereço', () => {
+      const comLinks: MaterialEditSnapshot = { ...atual, relatedLinks: [videoaula, artigo] }
+
+      const acrescentado = buildMaterialEditDiff(atual, { ...mesmaEntrada, relatedLinks: [videoaula] })
+      const removido     = buildMaterialEditDiff(comLinks, { ...mesmaEntrada, relatedLinks: [videoaula] })
+      const reordenado   = buildMaterialEditDiff(comLinks, { ...mesmaEntrada, relatedLinks: [artigo, videoaula] })
+      const outroDestino = buildMaterialEditDiff(comLinks, {
+        ...mesmaEntrada,
+        relatedLinks: [videoaula, { ...artigo, url: 'https://exemplo.org/outro' }],
+      })
+
+      for (const diff of [acrescentado, removido, reordenado, outroDestino]) {
+        expect(diff.changed).toEqual(['relatedLinks'])
+      }
+      expect(acrescentado.relatedLinks).toEqual({ from: [], to: [videoaula] })
+      expect(removido.relatedLinks).toEqual({ from: [videoaula, artigo], to: [videoaula] })
+    })
+  })
 })
