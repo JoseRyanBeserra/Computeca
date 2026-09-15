@@ -1,0 +1,82 @@
+# docker-compose.local.yml — Computeca completa, local, com um comando só
+#
+# Sobe o PostgreSQL, o MinIO e a imagem de produção da Computeca (front + API +
+# worker), construída a partir do código da pasta atual.
+#
+#   Subir (ou atualizar depois de mudar o código):
+#     docker compose -f docker-compose.local.yml up -d --build
+#   Parar:
+#     docker compose -f docker-compose.local.yml down
+#   Logs da aplicação:
+#     docker compose -f docker-compose.local.yml logs -f computeca
+#
+#   Acesso: http://localhost:8080
+#
+# REAPROVEITA O BANCO DE DESENVOLVIMENTO. O nome de projeto `mi-server` é o mesmo
+# do MI-server/docker-compose.yml, então este arquivo usa os MESMOS containers
+# (mi-postgres, mi-minio) e os MESMOS volumes (mi-server_pg_data,
+# mi-server_minio_data): usuários e materiais cadastrados continuam lá.
+# `down` não apaga dados; `down -v` APAGARIA — não use `-v` sem querer isso.
+#
+# Pré-requisito: MI-server/.env existente (segredos, admin, MinIO).
+
+name: mi-server
+
+services:
+
+  # ── PostgreSQL e MinIO ──────────────────────────────────────────────────────
+  # Definições herdadas do compose de desenvolvimento, sem cópia: mudou lá, vale
+  # aqui. O `extends` traz só estes dois serviços — o Grafana (otel-lgtm) e os
+  # serviços de IA ficam de fora.
+  db:
+    extends:
+      file: MI-server/docker-compose.yml
+      service: db
+
+  minio:
+    extends:
+      file: MI-server/docker-compose.yml
+      service: minio
+
+  # ── Computeca (imagem de produção) ──────────────────────────────────────────
+  computeca:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # OBRIGATÓRIO. Sem ele o Dockerfile grava VITE_API_URL como texto vazio,
+        # o front chama /mis em vez de /api/mis e o Nginx devolve o index.html
+        # com status 200 — a tela carrega, mas nenhuma chamada à API funciona.
+        VITE_API_URL: /api
+    image: computeca:local
+    container_name: computeca
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file:
+      - MI-server/.env
+    # Sobrescreve o que no .env aponta para 127.0.0.1: dentro do container,
+    # 127.0.0.1 é o próprio container, e os serviços são alcançados pelo nome.
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/mi_db
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: "9000"
+      # URLs pré-assinadas dos PDFs precisam de um endereço que o NAVEGADOR alcance.
+      MINIO_PUBLIC_ENDPOINT: localhost
+      MINIO_PUBLIC_PORT: "9000"
+      MINIO_PUBLIC_USE_SSL: "false"
+      REDIS_HOST: redis
+      QDRANT_URL: http://qdrant:6333
+      APP_URL: http://localhost:8080
+
+volumes:
+  # Com o projeto `mi-server`, viram mi-server_pg_data e mi-server_minio_data —
+  # os volumes que já guardam o banco e os arquivos de desenvolvimento.
+  pg_data:
+  minio_data:

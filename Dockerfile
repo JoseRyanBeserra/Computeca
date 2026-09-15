@@ -51,7 +51,9 @@ COPY front/nginx.conf /etc/nginx/http.d/default.conf
 
 # Script de inicialização dos dois processos
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Remove CRLF: um checkout feito no Windows grava "#!/bin/sh\r", e o container
+# não sobe ("not found") sem nenhuma pista do motivo.
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
 
 EXPOSE 8080
 CMD ["/start.sh"]
