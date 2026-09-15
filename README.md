@@ -47,7 +47,7 @@ O que um Material Instrucional (MI) oferece hoje, de ponta a ponta. Cada funcion
 | Funcionalidade | Descrição | Spec |
 | :-- | :-- | :-- |
 | **Cadastro de MI** | Envio de PDF (até 50 MB, validado por *magic bytes*) com **título** (até 255) e **descrição** (50 a 2000 caracteres) obrigatórios. Pode ser feito direto (`POST /mis`) ou dentro de um projeto (`POST /organizations/:orgId/mis`) — os dois caminhos compartilham parse e validação. | [`003`](specs/003-material-description/) |
-| **Habilidades BNCC** | Seleção opcional das habilidades da BNCC de Computação, com busca por código ou descrição e habilidade personalizada. Filtro por habilidade na listagem. | — |
+| **Habilidades BNCC** | Seleção opcional entre as **141 habilidades** da BNCC de Computação — da Educação Infantil ao Ensino Médio, com descrição integral —, todas visíveis na lista, agrupadas por etapa, com busca por código ou trecho da descrição e habilidade personalizada. Filtro por habilidade na listagem. | [`006`](specs/006-bncc-habilidades-update/) |
 | **Links relacionados** | Até **10** links opcionais (nome até 60 caracteres + endereço `http`/`https`), exibidos como botões abaixo da descrição. Endereços com `javascript:`, `data:`, `file:` e `ftp:` são recusados no servidor; os botões abrem em nova aba isolada da origem (`noopener noreferrer`). | [`004`](specs/004-material-links/) |
 | **Pré-visualização do PDF** | Documento embutido na tela de detalhes, com acesso por URL pré-assinada renovada antes de expirar. Em telas estreitas o PDF não é carregado. | [`002`](specs/002-pdf-preview/) |
 | **Fluxo de aprovação docente** | Material enviado entra como *aguardando revisão*; Professor/Admin aprova ou rejeita. | — |

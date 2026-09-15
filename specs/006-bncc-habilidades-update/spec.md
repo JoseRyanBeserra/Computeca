@@ -27,6 +27,14 @@ lista com busca. Essa lista foi montada à mão e está **incompleta** em relaç
 Todos os 109 códigos atuais existem no arquivo — nenhuma habilidade é retirada. As três
 habilidades usadas hoje pelo acervo (`EF06CO01`, `EF06CO02`, `EF06CO04`) permanecem.
 
+## Clarifications
+
+### Session 2026-09-14
+
+- Q: A lista de sugestões deve continuar limitada a 8 habilidades por etapa? → A: **Não.** Ao
+  publicar um material, o autor precisa ver a lista com **todas** as habilidades do arquivo, e não
+  apenas algumas. O limite por etapa é removido (FR-014, SC-006).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Encontrar qualquer habilidade oficial ao classificar um material (Priority: P1)
@@ -103,6 +111,8 @@ ordem da escolaridade, cada um contendo apenas códigos da sua etapa.
    `EF01`–`EF05` e os agrupados `EF15`; nenhum código de outra etapa aparece ali.
 3. **Given** o grupo Anos Finais, **When** o autor o percorre, **Then** encontra `EF06`–`EF09` e
    os agrupados `EF69`.
+4. **Given** a lista de sugestões aberta sem termo, **When** o autor rola até o fim, **Then**
+   encontra **todas as 141 habilidades** — nenhuma etapa aparece cortada.
 
 ---
 
@@ -114,8 +124,9 @@ ordem da escolaridade, cada um contendo apenas códigos da sua etapa.
 - **Descrições repetidas entre códigos diferentes** (ex.: `EF05CO03` e `EF15CO03` têm o mesmo
   texto; `EF06CO02` e `EF69CO02` também): ambos os códigos existem e são selecionáveis
   separadamente — o código é o que distingue a habilidade, não a descrição.
-- **Busca por termo que casa com muitas habilidades** (ex.: "algoritmo"): as sugestões continuam
-  agrupadas por etapa e limitadas por grupo, como hoje, sem travar a tela.
+- **Busca por termo que casa com muitas habilidades** (ex.: "algoritmo"): **todas** as
+  correspondências aparecem, agrupadas por etapa, na lista com rolagem — nenhuma é omitida por
+  limite de quantidade.
 - **Habilidade já selecionada**: não reaparece nas sugestões, como hoje.
 - **Pequenas variações de redação entre códigos equivalentes** (ex.: "tipo de dados" em `EF06CO01`
   e "tipo de dado" em `EF69CO01`): preservadas como estão no arquivo, sem correção editorial.
@@ -146,6 +157,8 @@ ordem da escolaridade, cada um contendo apenas códigos da sua etapa.
 - **FR-012**: O arquivo de origem MUST ficar versionado no repositório, e MUST existir verificação
   automatizada de que o catálogo corresponde a ele — mesma quantidade, mesmos códigos (com a
   normalização do FR-003) e mesmas descrições.
+- **FR-014**: A lista de sugestões MUST exibir **todas** as habilidades que correspondem à busca —
+  sem termo digitado, as 141 —, sem limite de quantidade por etapa, navegável por rolagem.
 - **FR-013**: Os testes MUST cobrir a presença das habilidades novas das três etapas acrescentadas,
   a normalização do FR-003, a ordem das etapas e a continuidade das habilidades já usadas pelo acervo.
 
@@ -167,6 +180,8 @@ ordem da escolaridade, cada um contendo apenas códigos da sua etapa.
 - **SC-003**: 0 materiais com habilidades alteradas após a atualização.
 - **SC-004**: Um autor localiza uma habilidade da Educação Infantil, a partir de um termo da
   descrição, em menos de 30 segundos e sem recorrer à habilidade personalizada.
+- **SC-006**: Com a lista aberta e sem termo digitado, as 141 habilidades estão acessíveis por
+  rolagem — 0 habilidades ocultas por limite.
 - **SC-005**: Nenhum teste existente tem expectativa alterada, exceto os que dependiam
   explicitamente do texto resumido das descrições antigas.
 

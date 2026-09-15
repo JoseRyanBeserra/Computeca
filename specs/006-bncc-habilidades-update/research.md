@@ -137,8 +137,20 @@ três a quatro linhas de texto pequeno — cabe na lista de sugestões, que já 
 **Decisão**: **nenhuma mudança visual** no componente. O que muda é o comentário do catálogo, que
 hoje justifica o resumo "para caber na UI" — premissa que a verificação mostrou falsa.
 
-**Limite por grupo mantido** (`MAX_POR_GRUPO = 8`): com textos integrais, uma busca ampla como
-"algoritmo" casa com dezenas de habilidades; o limite continua sendo o que mantém a lista curta.
+~~**Limite por grupo mantido** (`MAX_POR_GRUPO = 8`)~~ — **decisão revertida na clarificação de
+2026-09-14.** O limite era justamente o que fazia a lista mostrar "apenas algumas" habilidades: sem
+termo, só 8 de cada etapa apareciam, e habilidades como `EF05CO09` ou `EM13CO20` só eram alcançáveis
+por quem já soubesse o que buscar.
+
+**Decisão atual**: remover o limite. A lista mostra todas as correspondências, agrupadas, com
+rolagem própria; a altura máxima da lista cresce um pouco para comportar mais itens por vez.
+
+**Custo verificado**: 141 itens, cada um um botão com dois textos, é uma lista pequena para o
+navegador — dispensa virtualização. A filtragem por `includes` sobre 141 entradas acontece a cada
+tecla sem custo perceptível.
+
+**Alternativas consideradas**: *limite com "ver mais" por etapa* — mais cliques para chegar ao que
+o pedido quer ver de imediato; *virtualização da lista* — complexidade sem necessidade nesta escala.
 
 ---
 

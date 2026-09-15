@@ -68,10 +68,13 @@ Futuras atualizações seguem o mesmo caminho: substituir o CSV, rodar o gerador
 
 ## Interface: `BnccHabilidadePicker`
 
-**Sem mudança de props nem de comportamento.** O que a feature garante sobre ele:
+**Sem mudança de props.** A única mudança de comportamento é a **remoção do limite de 8 sugestões
+por etapa** (clarificação de 2026-09-14). O que a feature garante sobre ele:
 
 | Situação | Resultado |
 |---|---|
+| Lista aberta sem termo | **As 141 habilidades** como opções, agrupadas, com rolagem — nenhuma omitida |
+| Busca ampla (ex.: "algoritmo") | **Todas** as correspondências, sem corte por etapa |
 | Busca por qualquer um dos 141 códigos | A habilidade aparece como sugestão, sob a sua etapa |
 | Busca por trecho da descrição integral (ex.: "robótica") | A habilidade correspondente aparece |
 | Lista aberta sem termo | Quatro grupos, na ordem das etapas |

@@ -75,6 +75,19 @@ A validação de verdade continua no servidor.
 Selecionar o arquivo pré-preenche o título com o nome dele — sugestão editável, distinta do
 servidor adivinhar (ele não faz mais isso). Em teste, lembre de limpar o campo antes de digitar.
 
+## Habilidades da BNCC Computação
+
+- **`features/materials/data/bnccComputacao.ts` é GERADO — não edite à mão.** A fonte é o arquivo
+  oficial `habilidades_bncc_computacao.csv`, na mesma pasta (141 habilidades, da Educação Infantil
+  ao Ensino Médio, com descrição integral).
+- Para atualizar: substitua o CSV, rode `node scripts/gerarCatalogoBncc.mjs` na pasta `front/` e
+  rode os testes. `bnccComputacao.test.ts` confere o catálogo contra o CSV com um parser próprio e
+  **falha apontando o código** se os dois divergirem.
+- O CSV só é lido pelo teste e pelo gerador — nunca o importe em código de produção, ou ele vai
+  para o bundle.
+- O `BnccHabilidadePicker` mostra **todas** as correspondências, sem limite por etapa. Não
+  reintroduza corte: foi ele que fazia a lista exibir "apenas algumas" habilidades.
+
 ## Chips e links relacionados
 
 - **O estilo do chip vive em `components/chipStyles.ts`** (`chipClasses('indigo' | 'gray' | 'teal')`).

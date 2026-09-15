@@ -43,16 +43,16 @@ Feature **só no front-end**: `front/`. Nenhum arquivo de `MI-server/` é altera
 
 ### Test (escrito antes do gerador)
 
-- [ ] T004 Criar `front/src/features/materials/data/bnccComputacao.test.ts` com o **teste de correspondência** (FR-012): importar o CSV com `import csv from './habilidades_bncc_computacao.csv?raw'`, fazer o parse **no próprio teste** — cabeçalho `codigo,habilidade` ignorado, linhas vazias ignoradas, campo entre aspas com aspas externas removidas e **vírgulas internas preservadas**, espaços das extremidades removidos, e a normalização de sequência `CO0NN` → `CONN` — e asseverar que `BNCC_COMPUTACAO_FLAT` tem **141** entradas com **os mesmos códigos e as mesmas descrições, na mesma ordem**. A falha deve apontar o código divergente, não só dizer que as listas diferem. **Não reutilizar o parser do gerador** — dois parsers independentes é o que dá valor à comparação. Deve falhar contra o catálogo atual (109 entradas)
-- [ ] T005 Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` o caso da normalização: o CSV contém `EF05CO011`; o catálogo contém `EF05CO11` e **não** contém `EF05CO011`; e a normalização afeta **exatamente um** código do arquivo — se um arquivo futuro trouxer outra anomalia, o teste falha em vez de corrigi-la em silêncio (depende de T004)
-- [ ] T006 Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` a integridade das exportações: nenhum código repetido em `BNCC_COMPUTACAO_FLAT`, e `BNCC_COMPUTACAO_MAP` com exatamente uma chave por código, cujo valor é a descrição da entrada (depende de T004)
+- [X] T004 Criar `front/src/features/materials/data/bnccComputacao.test.ts` com o **teste de correspondência** (FR-012): importar o CSV com `import csv from './habilidades_bncc_computacao.csv?raw'`, fazer o parse **no próprio teste** — cabeçalho `codigo,habilidade` ignorado, linhas vazias ignoradas, campo entre aspas com aspas externas removidas e **vírgulas internas preservadas**, espaços das extremidades removidos, e a normalização de sequência `CO0NN` → `CONN` — e asseverar que `BNCC_COMPUTACAO_FLAT` tem **141** entradas com **os mesmos códigos e as mesmas descrições, na mesma ordem**. A falha deve apontar o código divergente, não só dizer que as listas diferem. **Não reutilizar o parser do gerador** — dois parsers independentes é o que dá valor à comparação. Deve falhar contra o catálogo atual (109 entradas)
+- [X] T005 Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` o caso da normalização: o CSV contém `EF05CO011`; o catálogo contém `EF05CO11` e **não** contém `EF05CO011`; e a normalização afeta **exatamente um** código do arquivo — se um arquivo futuro trouxer outra anomalia, o teste falha em vez de corrigi-la em silêncio (depende de T004)
+- [X] T006 Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` a integridade das exportações: nenhum código repetido em `BNCC_COMPUTACAO_FLAT`, e `BNCC_COMPUTACAO_MAP` com exatamente uma chave por código, cujo valor é a descrição da entrada (depende de T004)
 
 ### Implementation
 
-- [ ] T007 Criar `front/scripts/gerarCatalogoBncc.mjs` (Node puro, sem dependência nova) que lê `front/src/features/materials/data/habilidades_bncc_computacao.csv` e **reescreve por inteiro** `front/src/features/materials/data/bnccComputacao.ts`, aplicando as regras de [data-model.md](./data-model.md): cabeçalho e linhas vazias ignorados; aspas externas removidas com vírgulas e aspas tipográficas internas preservadas; espaços das extremidades removidos; "Sequência de 3 dígitos com zero à esquerda (`CO011`) → Vira 2 dígitos (`CO11`)"; etapa derivada do prefixo — `EI03` → `Educação Infantil`, `EF01`–`EF05` e `EF15` → `Ensino Fundamental — Anos Iniciais (1º ao 5º ano)`, `EF06`–`EF09` e `EF69` → `Ensino Fundamental — Anos Finais (6º ao 9º ano)`, `EM13` → `Ensino Médio` —, grupos nessa ordem e habilidades na ordem do arquivo. "Código repetido" e "Prefixo fora das quatro etapas" MUST encerrar com erro **sem escrever** o arquivo. Aspas simples nas descrições (ex.: `'verdadeiro'`) MUST ser escapadas na saída
-- [ ] T008 Fazer o gerador de `front/scripts/gerarCatalogoBncc.mjs` emitir em `bnccComputacao.ts` **a mesma interface pública de hoje** — `BnccHabilidade { codigo; descricao }`, `BnccGrupo { etapa; habilidades }`, `BNCC_COMPUTACAO`, `BNCC_COMPUTACAO_FLAT` e `BNCC_COMPUTACAO_MAP` —, com cabeçalho de comentário que: cita a fonte (Resolução CNE/CEB nº 1/2022, arquivo `habilidades_bncc_computacao.csv` ao lado); diz que as descrições são o **texto integral**; registra a correção `EF05CO011` → `EF05CO11`; e avisa **"arquivo gerado — não edite à mão; atualize o CSV e rode `node scripts/gerarCatalogoBncc.mjs`"**. Remover a justificativa atual de descrições "em forma resumida para caber na UI", que a verificação mostrou falsa (research.md, item 6) (depende de T007)
-- [ ] T009 Executar `node scripts/gerarCatalogoBncc.mjs` em `front/` para regenerar `front/src/features/materials/data/bnccComputacao.ts`, conferir que o arquivo sai com quebras de linha LF, e rodar `npx vitest run src/features/materials/data/bnccComputacao.test.ts` em `front/` — T004, T005 e T006 devem passar (depende de T001, T004–T008)
-- [ ] T010 Conferir que os 109 códigos de `specs/006-bncc-habilidades-update/baseline-codigos.txt` estão todos no catálogo regenerado — nenhum retirado — e que exatamente 32 novos entraram: `EI03CO01`–`EI03CO11`, `EF15CO01`–`EF15CO09` e `EF69CO01`–`EF69CO12` (depende de T003, T009)
+- [X] T007 Criar `front/scripts/gerarCatalogoBncc.mjs` (Node puro, sem dependência nova) que lê `front/src/features/materials/data/habilidades_bncc_computacao.csv` e **reescreve por inteiro** `front/src/features/materials/data/bnccComputacao.ts`, aplicando as regras de [data-model.md](./data-model.md): cabeçalho e linhas vazias ignorados; aspas externas removidas com vírgulas e aspas tipográficas internas preservadas; espaços das extremidades removidos; "Sequência de 3 dígitos com zero à esquerda (`CO011`) → Vira 2 dígitos (`CO11`)"; etapa derivada do prefixo — `EI03` → `Educação Infantil`, `EF01`–`EF05` e `EF15` → `Ensino Fundamental — Anos Iniciais (1º ao 5º ano)`, `EF06`–`EF09` e `EF69` → `Ensino Fundamental — Anos Finais (6º ao 9º ano)`, `EM13` → `Ensino Médio` —, grupos nessa ordem e habilidades na ordem do arquivo. "Código repetido" e "Prefixo fora das quatro etapas" MUST encerrar com erro **sem escrever** o arquivo. Aspas simples nas descrições (ex.: `'verdadeiro'`) MUST ser escapadas na saída
+- [X] T008 Fazer o gerador de `front/scripts/gerarCatalogoBncc.mjs` emitir em `bnccComputacao.ts` **a mesma interface pública de hoje** — `BnccHabilidade { codigo; descricao }`, `BnccGrupo { etapa; habilidades }`, `BNCC_COMPUTACAO`, `BNCC_COMPUTACAO_FLAT` e `BNCC_COMPUTACAO_MAP` —, com cabeçalho de comentário que: cita a fonte (Resolução CNE/CEB nº 1/2022, arquivo `habilidades_bncc_computacao.csv` ao lado); diz que as descrições são o **texto integral**; registra a correção `EF05CO011` → `EF05CO11`; e avisa **"arquivo gerado — não edite à mão; atualize o CSV e rode `node scripts/gerarCatalogoBncc.mjs`"**. Remover a justificativa atual de descrições "em forma resumida para caber na UI", que a verificação mostrou falsa (research.md, item 6) (depende de T007)
+- [X] T009 Executar `node scripts/gerarCatalogoBncc.mjs` em `front/` para regenerar `front/src/features/materials/data/bnccComputacao.ts`, conferir que o arquivo sai com quebras de linha LF, e rodar `npx vitest run src/features/materials/data/bnccComputacao.test.ts` em `front/` — T004, T005 e T006 devem passar (depende de T001, T004–T008)
+- [X] T010 Conferir que os 109 códigos de `specs/006-bncc-habilidades-update/baseline-codigos.txt` estão todos no catálogo regenerado — nenhum retirado — e que exatamente 32 novos entraram: `EI03CO01`–`EI03CO11`, `EF15CO01`–`EF15CO09` e `EF69CO01`–`EF69CO12` (depende de T003, T009)
 
 **Checkpoint**: o catálogo tem as 141 habilidades com texto integral, e está provado que corresponde ao arquivo.
 
@@ -66,15 +66,17 @@ Feature **só no front-end**: `front/`. Nenhum arquivo de `MI-server/` é altera
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que a busca encontra uma habilidade de **cada etapa acrescentada** — `EI03CO07`, `EF15CO05` e `EF69CO10` — como `option` (FR-001, FR-006)
-- [ ] T012 [P] [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que a busca pelo trecho `robótica` retorna `EM13CO16`, e pelo trecho `padrão de repetição` retorna `EI03CO01` — trechos que só existem no **texto integral**, não no resumo antigo (FR-002, FR-006)
-- [ ] T013 [P] [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que a sugestão de `EF02CO02` exibe a descrição **inteira**, terminando em "impacta na execução do algoritmo." (FR-007)
-- [ ] T014 [P] [US1] Teste em `front/src/pages/MaterialEditPage.test.tsx` confirmando que o seletor de habilidades da **edição** encontra `EI03CO03` — o mesmo catálogo do cadastro (FR-008)
+- [X] T011 [P] [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que a busca encontra uma habilidade de **cada etapa acrescentada** — `EI03CO07`, `EF15CO05` e `EF69CO10` — como `option` (FR-001, FR-006)
+- [X] T012 [P] [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que a busca pelo trecho `robótica` retorna `EM13CO16`, e pelo trecho `padrão de repetição` retorna `EI03CO01` — trechos que só existem no **texto integral**, não no resumo antigo (FR-002, FR-006)
+- [X] T013 [P] [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que a sugestão de `EF02CO02` exibe a descrição **inteira**, terminando em "impacta na execução do algoritmo." (FR-007)
+- [X] T014 [P] [US1] Teste em `front/src/pages/MaterialEditPage.test.tsx` confirmando que o seletor de habilidades da **edição** encontra `EI03CO03` — o mesmo catálogo do cadastro (FR-008)
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Verificar em `front/src/components/BnccHabilidadePicker.tsx` que o texto da sugestão e o `title` da tag selecionada **não truncam** a descrição (sem `truncate`, `line-clamp` ou corte por caracteres). Se houver, remover; se não houver — o esperado pela research.md, item 6 —, registrar na task que nada precisou mudar (depende de T009)
-- [ ] T016 [US1] Rodar os testes de `front/src/components/BnccHabilidadePicker.test.tsx` e `front/src/pages/MaterialEditPage.test.tsx` — T011 a T014 devem passar com o catálogo regenerado (depende de T009, T011–T015)
+- [X] T015 [US1] Verificar em `front/src/components/BnccHabilidadePicker.tsx` que o texto da sugestão e o `title` da tag selecionada **não truncam** a descrição (sem `truncate`, `line-clamp` ou corte por caracteres). Se houver, remover; se não houver — o esperado pela research.md, item 6 —, registrar na task que nada precisou mudar (depende de T009)
+- [X] T031 [US1] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que, ao focar o campo **sem digitar**, a lista traz **141** opções — uma por habilidade do catálogo —, e que a busca `algoritmo` traz **exatamente** o número de habilidades do catálogo cuja descrição ou código contém o termo, sem corte por etapa (FR-014, SC-006). Deve falhar com o limite atual de 8 por etapa
+- [X] T032 [US1] Remover de `front/src/components/BnccHabilidadePicker.tsx` a constante `MAX_POR_GRUPO` e o `.slice(0, MAX_POR_GRUPO)`, para a lista mostrar todas as correspondências; aumentar a altura máxima da lista de `max-h-72` para `max-h-96`, mantendo a rolagem própria (FR-014) (depende de T031)
+- [X] T016 [US1] Rodar os testes de `front/src/components/BnccHabilidadePicker.test.tsx` e `front/src/pages/MaterialEditPage.test.tsx` — T011 a T014 devem passar com o catálogo regenerado (depende de T009, T011–T015)
 
 **Checkpoint**: qualquer habilidade oficial é encontrada no cadastro e na edição. É o MVP.
 
@@ -88,14 +90,14 @@ Feature **só no front-end**: `front/`. Nenhum arquivo de `MI-server/` é altera
 
 ### Tests for User Story 2
 
-- [ ] T017 [P] [US2] Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` o caso de continuidade do acervo: `EF06CO01`, `EF06CO02` e `EF06CO04` — os códigos gravados nos materiais existentes — estão presentes em `BNCC_COMPUTACAO_MAP`
-- [ ] T018 [P] [US2] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que, com `selected={['EI03CO01']}`, a tag exibe no `title` a **descrição oficial** — e não "Habilidade personalizada" — (FR-011)
-- [ ] T019 [P] [US2] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que digitar `EI03CO01` **não** oferece "Adicionar habilidade personalizada", enquanto um texto fora do catálogo continua oferecendo (FR-010, FR-011)
+- [X] T017 [P] [US2] Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` o caso de continuidade do acervo: `EF06CO01`, `EF06CO02` e `EF06CO04` — os códigos gravados nos materiais existentes — estão presentes em `BNCC_COMPUTACAO_MAP`
+- [X] T018 [P] [US2] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que, com `selected={['EI03CO01']}`, a tag exibe no `title` a **descrição oficial** — e não "Habilidade personalizada" — (FR-011)
+- [X] T019 [P] [US2] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que digitar `EI03CO01` **não** oferece "Adicionar habilidade personalizada", enquanto um texto fora do catálogo continua oferecendo (FR-010, FR-011)
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Confirmar que nenhum arquivo de `MI-server/` foi alterado pela feature com `git diff --stat -- MI-server` restrito aos commits desta feature — a garantia do FR-009 é **não haver escrita**, e é isso que se verifica (depende de T009)
-- [ ] T021 [US2] Repetir a consulta de T002 e comparar com `specs/006-bncc-habilidades-update/baseline-habilidades.txt`: saída **idêntica** linha por linha (SC-003). Remover os dois arquivos `baseline-*.txt` depois da comparação — são artefato de verificação, não documentação (depende de T002, T009)
+- [X] T020 [US2] Confirmar que nenhum arquivo de `MI-server/` foi alterado pela feature com `git diff --stat -- MI-server` restrito aos commits desta feature — a garantia do FR-009 é **não haver escrita**, e é isso que se verifica (depende de T009)
+- [X] T021 [US2] Repetir a consulta de T002 e comparar com `specs/006-bncc-habilidades-update/baseline-habilidades.txt`: saída **idêntica** linha por linha (SC-003). Remover os dois arquivos `baseline-*.txt` depois da comparação — são artefato de verificação, não documentação (depende de T002, T009)
 
 **Checkpoint**: o acervo está intacto, e o que era personalizado e virou oficial passa a ser reconhecido.
 
@@ -109,12 +111,12 @@ Feature **só no front-end**: `front/`. Nenhum arquivo de `MI-server/` é altera
 
 ### Tests for User Story 3
 
-- [ ] T022 [P] [US3] Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` o caso das etapas: `BNCC_COMPUTACAO` tem **4** grupos na ordem `Educação Infantil` → `Ensino Fundamental — Anos Iniciais (1º ao 5º ano)` → `Ensino Fundamental — Anos Finais (6º ao 9º ano)` → `Ensino Médio`, com **11, 50, 54 e 26** habilidades, e cada grupo contém **apenas** os prefixos da sua etapa — `EI03`; `EF01`–`EF05` e `EF15`; `EF06`–`EF09` e `EF69`; `EM13` (FR-004)
-- [ ] T023 [P] [US3] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que, ao focar o campo **sem digitar**, os rótulos de etapa aparecem no documento nessa mesma ordem (FR-004, FR-005)
+- [X] T022 [P] [US3] Acrescentar a `front/src/features/materials/data/bnccComputacao.test.ts` o caso das etapas: `BNCC_COMPUTACAO` tem **4** grupos na ordem `Educação Infantil` → `Ensino Fundamental — Anos Iniciais (1º ao 5º ano)` → `Ensino Fundamental — Anos Finais (6º ao 9º ano)` → `Ensino Médio`, com **11, 50, 54 e 26** habilidades, e cada grupo contém **apenas** os prefixos da sua etapa — `EI03`; `EF01`–`EF05` e `EF15`; `EF06`–`EF09` e `EF69`; `EM13` (FR-004)
+- [X] T023 [P] [US3] Teste em `front/src/components/BnccHabilidadePicker.test.tsx` confirmando que, ao focar o campo **sem digitar**, os rótulos de etapa aparecem no documento nessa mesma ordem (FR-004, FR-005)
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Rodar `front/src/features/materials/data/bnccComputacao.test.ts` e `front/src/components/BnccHabilidadePicker.test.tsx` — T022 e T023 devem passar. O agrupamento já é produzido pelo gerador (T007); se falhar, a correção é **no gerador**, seguida de nova execução de T009, nunca no `.ts` gerado (depende de T009, T022, T023)
+- [X] T024 [US3] Rodar `front/src/features/materials/data/bnccComputacao.test.ts` e `front/src/components/BnccHabilidadePicker.test.tsx` — T022 e T023 devem passar. O agrupamento já é produzido pelo gerador (T007); se falhar, a correção é **no gerador**, seguida de nova execução de T009, nunca no `.ts` gerado (depende de T009, T022, T023)
 
 **Checkpoint**: a lista de 141 habilidades segue navegável por etapa.
 
@@ -122,11 +124,11 @@ Feature **só no front-end**: `front/`. Nenhum arquivo de `MI-server/` é altera
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T025 [P] Documentar em `front/CLAUDE.md` que `features/materials/data/bnccComputacao.ts` é **gerado** a partir do CSV ao lado, que **não se edita à mão**, e o procedimento de atualização: substituir o CSV, rodar `node scripts/gerarCatalogoBncc.mjs`, rodar os testes — o de correspondência falha se o catálogo divergir do arquivo
-- [ ] T026 [P] Atualizar a linha **Habilidades BNCC** da tabela "Funcionalidades do Acervo" em `README.md` para citar as **141** habilidades da BNCC Computação, da Educação Infantil ao Ensino Médio, com descrição integral
-- [ ] T027 Executar `npm --prefix front run test` confirmando que todos passam e que **nenhum teste preexistente teve expectativa alterada** — em especial os três de `BnccHabilidadePicker.test.tsx` já existentes (SC-005)
-- [ ] T028 Executar `npm --prefix front run build` e confirmar que o **CSV não entrou no bundle**: `grep -r "codigo,habilidade" front/dist` não deve encontrar nada — ele só pode ser importado pelo teste (plan.md, Constraints)
-- [ ] T029 Validar que a verificação protege de fato: alterar uma vírgula numa descrição de `front/src/features/materials/data/bnccComputacao.ts`, rodar o teste de correspondência e confirmar que ele **falha apontando o código**; desfazer com `node scripts/gerarCatalogoBncc.mjs` e confirmar que volta a passar
+- [X] T025 [P] Documentar em `front/CLAUDE.md` que `features/materials/data/bnccComputacao.ts` é **gerado** a partir do CSV ao lado, que **não se edita à mão**, e o procedimento de atualização: substituir o CSV, rodar `node scripts/gerarCatalogoBncc.mjs`, rodar os testes — o de correspondência falha se o catálogo divergir do arquivo
+- [X] T026 [P] Atualizar a linha **Habilidades BNCC** da tabela "Funcionalidades do Acervo" em `README.md` para citar as **141** habilidades da BNCC Computação, da Educação Infantil ao Ensino Médio, com descrição integral
+- [X] T027 Executar `npm --prefix front run test` confirmando que todos passam e que **nenhum teste preexistente teve expectativa alterada** — em especial os três de `BnccHabilidadePicker.test.tsx` já existentes (SC-005)
+- [X] T028 Executar `npm --prefix front run build` e confirmar que o **CSV não entrou no bundle**: `grep -r "codigo,habilidade" front/dist` não deve encontrar nada — ele só pode ser importado pelo teste (plan.md, Constraints)
+- [X] T029 Validar que a verificação protege de fato: alterar uma vírgula numa descrição de `front/src/features/materials/data/bnccComputacao.ts`, rodar o teste de correspondência e confirmar que ele **falha apontando o código**; desfazer com `node scripts/gerarCatalogoBncc.mjs` e confirmar que volta a passar
 - [ ] T030 Percorrer os 8 cenários de [quickstart.md](./quickstart.md) no ambiente real, com uma conta de upload e uma conta ADMIN
 
 ---
