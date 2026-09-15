@@ -167,4 +167,50 @@ describe('MaterialEditPage', () => {
 
     expect(screen.getByText(/devolve para\s+revisão/i)).toBeInTheDocument()
   })
+
+  // Feature 004 — os links relacionados também são editáveis.
+  describe('links relacionados', () => {
+    const LINKS = [
+      { label: 'Videoaula', url: 'https://exemplo.org/aula' },
+      { label: 'Planilha',  url: 'https://exemplo.org/planilha' },
+    ]
+
+    it('abre com os links atuais do material', async () => {
+      renderEdit({ relatedLinks: LINKS } as Partial<typeof material>)
+
+      expect(await screen.findByRole('button', { name: 'Remover link Videoaula' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Remover link Planilha' })).toBeInTheDocument()
+    })
+
+    it('envia a lista editada como array JSON — acréscimo e remoção', async () => {
+      renderEdit({ relatedLinks: LINKS } as Partial<typeof material>)
+      mockApi.put.mockResolvedValue({ data: material })
+
+      await screen.findByRole('button', { name: 'Remover link Videoaula' })
+      fireEvent.click(screen.getByRole('button', { name: 'Remover link Videoaula' }))
+      fireEvent.change(screen.getByLabelText('Nome do link'), { target: { value: 'Artigo' } })
+      fireEvent.change(screen.getByLabelText('Endereço do link'), { target: { value: 'https://exemplo.org/artigo' } })
+      fireEvent.click(screen.getByRole('button', { name: /Acrescentar link/i }))
+      fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i }))
+
+      await waitFor(() => expect(mockApi.put).toHaveBeenCalled())
+      const fd = mockApi.put.mock.calls[0][1] as FormData
+      expect(JSON.parse(fd.get('relatedLinks') as string)).toEqual([
+        { label: 'Planilha', url: 'https://exemplo.org/planilha' },
+        { label: 'Artigo',   url: 'https://exemplo.org/artigo' },
+      ])
+    })
+
+    it('removidos todos, envia lista vazia — é o que diz ao servidor para apagá-los', async () => {
+      renderEdit({ relatedLinks: [LINKS[0]] } as Partial<typeof material>)
+      mockApi.put.mockResolvedValue({ data: material })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Remover link Videoaula' }))
+      fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i }))
+
+      await waitFor(() => expect(mockApi.put).toHaveBeenCalled())
+      const fd = mockApi.put.mock.calls[0][1] as FormData
+      expect(fd.get('relatedLinks')).toBe('[]')
+    })
+  })
 })

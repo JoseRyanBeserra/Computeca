@@ -10,6 +10,9 @@ import {
   DESCRIPTION_MIN_LENGTH,
   DESCRIPTION_MAX_LENGTH,
   TITLE_MAX_LENGTH,
+  relatedLinksSchema,
+  RELATED_LINKS_MAX,
+  RELATED_LINK_LABEL_MAX_LENGTH,
 } from '../../../src/schemas/resources/materials/pdf/materialPdfUploadSchema'
 
 const BASE = {
@@ -131,5 +134,100 @@ describe('materialPdfUploadSchema — habilidades BNCC seguem opcionais', () => 
     if (resultado.success) {
       expect(resultado.data.habilidadesBncc).toEqual(['EF15LP01', 'EF67LP03'])
     }
+  })
+})
+
+// ── Feature 004: links relacionados ───────────────────────────────────────────
+
+const link = (overrides: Record<string, unknown> = {}) => ({
+  label: 'Videoaula',
+  url:   'https://exemplo.org/aula',
+  ...overrides,
+})
+
+const links = (n: number) => Array.from({ length: n }, (_, i) => link({ label: `Link ${i + 1}` }))
+
+describe('relatedLinksSchema — lista opcional', () => {
+  it('ausente vira lista vazia', () => {
+    const resultado = parse({ relatedLinks: undefined })
+
+    expect(resultado.success).toBe(true)
+    if (resultado.success) expect(resultado.data.relatedLinks).toEqual([])
+  })
+
+  it('aceita lista vazia', () => {
+    expect(relatedLinksSchema.safeParse([]).success).toBe(true)
+  })
+
+  it(`aceita exatamente ${RELATED_LINKS_MAX} links — limite inclusivo`, () => {
+    expect(relatedLinksSchema.safeParse(links(RELATED_LINKS_MAX)).success).toBe(true)
+  })
+
+  it(`rejeita ${RELATED_LINKS_MAX + 1} links`, () => {
+    expect(relatedLinksSchema.safeParse(links(RELATED_LINKS_MAX + 1)).success).toBe(false)
+  })
+
+  it('aceita endereço repetido — dois rótulos podem apontar ao mesmo lugar', () => {
+    expect(relatedLinksSchema.safeParse([link({ label: 'A' }), link({ label: 'B' })]).success).toBe(true)
+  })
+
+  it('preserva a ordem e grava rótulo e endereço aparados', () => {
+    const resultado = relatedLinksSchema.safeParse([
+      link({ label: '  Planilha  ', url: '  https://exemplo.org/planilha  ' }),
+      link({ label: 'Artigo' }),
+    ])
+
+    expect(resultado.success).toBe(true)
+    if (resultado.success) {
+      expect(resultado.data).toEqual([
+        { label: 'Planilha', url: 'https://exemplo.org/planilha' },
+        { label: 'Artigo',   url: 'https://exemplo.org/aula' },
+      ])
+    }
+  })
+})
+
+describe('relatedLinksSchema — rótulo', () => {
+  it.each([
+    ['ausente',        undefined],
+    ['vazio',          ''],
+    ['só de espaços',  '     '],
+  ])('rejeita rótulo %s', (_caso, label) => {
+    expect(relatedLinksSchema.safeParse([link({ label })]).success).toBe(false)
+  })
+
+  it(`aceita rótulo com exatamente ${RELATED_LINK_LABEL_MAX_LENGTH} caracteres — limite inclusivo`, () => {
+    const label = texto(RELATED_LINK_LABEL_MAX_LENGTH)
+    expect(relatedLinksSchema.safeParse([link({ label })]).success).toBe(true)
+  })
+
+  it(`rejeita rótulo com ${RELATED_LINK_LABEL_MAX_LENGTH + 1} caracteres`, () => {
+    const label = texto(RELATED_LINK_LABEL_MAX_LENGTH + 1)
+    expect(relatedLinksSchema.safeParse([link({ label })]).success).toBe(false)
+  })
+})
+
+describe('relatedLinksSchema — endereço', () => {
+  it.each(['https://exemplo.org', 'http://exemplo.org/a?b=1', 'HTTPS://Exemplo.org'])(
+    'aceita %s',
+    (url) => {
+      expect(relatedLinksSchema.safeParse([link({ url })]).success).toBe(true)
+    },
+  )
+
+  it.each(['', 'exemplo.org', 'não é endereço'])('rejeita endereço malformado: %j', (url) => {
+    expect(relatedLinksSchema.safeParse([link({ url })]).success).toBe(false)
+  })
+
+  // Este é o grupo que `z.string().url()` sozinho ACEITARIA. Se algum destes
+  // passar, a verificação de protocolo foi removida ou afrouxada.
+  it.each([
+    'javascript:alert(1)',
+    '  JavaScript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'file:///etc/passwd',
+    'ftp://exemplo.org/arquivo',
+  ])('rejeita esquema perigoso: %s', (url) => {
+    expect(relatedLinksSchema.safeParse([link({ url })]).success).toBe(false)
   })
 })

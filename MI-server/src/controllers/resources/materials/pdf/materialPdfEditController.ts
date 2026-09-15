@@ -9,6 +9,7 @@ import { httpResponse, httpError } from '../../../../utils/http'
 import { StatusCode } from '../../../../utils/statusCode'
 import { logger } from '../../../../lib/logger'
 import { parseMaterialMultipart } from './shared/parseMaterialMultipart'
+import type { IMaterialLink } from '../../../../@types/resources/materials/pdf'
 
 const ctx = 'materialPdfEditController'
 
@@ -21,7 +22,8 @@ const ctx = 'materialPdfEditController'
  *   - title           : título do material (OBRIGATÓRIO, até 255 caracteres)
  *   - description     : descrição do material (OBRIGATÓRIA, 50 a 2000 caracteres)
  *   - habilidadesBncc : habilidades BNCC (opcional)
- *   - file            : documento PDF (OPCIONAL — ausente significa "manter o atual")
+ *   - relatedLinks    : array JSON de { label, url } — conjunto completo; ausente = sem links
+ *   - file          : documento PDF (OPCIONAL — ausente significa "manter o atual")
  *
  * `PUT` e não `PATCH`: o corpo carrega o conjunto COMPLETO dos metadados
  * editáveis. Campo opcional tornaria "omiti a descrição" indistinguível de
@@ -58,7 +60,7 @@ export async function materialPdfEditController(
 
     // Mesmo parse do cadastro, sem alteração: ele já devolve `fileBuffer` nulável,
     // e aqui esse nulo significa "não trocar o documento".
-    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc } =
+    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc, relatedLinks } =
       await parseMaterialMultipart(request)
 
     const material = await materialPdfEditService({
@@ -66,6 +68,7 @@ export async function materialPdfEditController(
       title:       title as string,
       description: description as string,
       habilidadesBncc,
+      relatedLinks: relatedLinks as IMaterialLink[],
       ...(fileBuffer && originalFileName && mimeType
         ? { buffer: fileBuffer, originalFileName, mimeType }
         : {}),

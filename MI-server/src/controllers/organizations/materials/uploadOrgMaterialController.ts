@@ -9,6 +9,7 @@ import { GeneralErrorResponse } from '../../../errors/GeneralErrorResponse'
 import { logger } from '../../../lib/logger'
 
 import { parseMaterialMultipart } from '../../resources/materials/pdf/shared/parseMaterialMultipart'
+import type { IMaterialLink } from '../../../@types/resources/materials/pdf'
 
 const ctx = 'uploadOrgMaterialController'
 
@@ -36,7 +37,7 @@ export async function uploadOrgMaterialController(
     // Parse compartilhado com POST /mis: é o que garante que os dois caminhos
     // de cadastro nunca divirjam nos campos exigidos. Como efeito colateral,
     // esta rota passa a aceitar habilidades BNCC, que o laço próprio ignorava.
-    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc } =
+    const { fileBuffer, originalFileName, mimeType, title, description, habilidadesBncc, relatedLinks } =
       await parseMaterialMultipart(request)
 
     if (!fileBuffer || !originalFileName || !mimeType) {
@@ -55,6 +56,7 @@ export async function uploadOrgMaterialController(
       originalFileName,
       mimeType,
       habilidadesBncc,
+      relatedLinks:    relatedLinks as IMaterialLink[],
       uploadedById:    request.user.sub,
       organizationIds: [orgId],
     })

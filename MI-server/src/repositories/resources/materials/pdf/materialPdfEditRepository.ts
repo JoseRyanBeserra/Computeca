@@ -2,8 +2,10 @@
 //
 // Apenas a query. Ordem das operações, diff e auditoria vivem no service — o
 // repositório não decide nada (Princípio: repositories contêm somente Prisma).
+import type { Prisma } from '@prisma/client'
 import { prisma } from '../../../../database/prisma'
-import type { IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import type { IMaterialLink, IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import { withRelatedLinks } from '../../../../utils/readStoredRelatedLinks'
 
 const MI_SELECT = {
   id:               true,
@@ -14,6 +16,7 @@ const MI_SELECT = {
   mimeType:         true,
   sizeBytes:        true,
   habilidadesBncc:  true,
+  relatedLinks:     true,
   status:           true,
   uploadedById:     true,
   createdAt:        true,
@@ -24,6 +27,8 @@ export interface UpdateMaterialInput {
   title:            string
   description:      string
   habilidadesBncc:  string[]
+  /** Conjunto completo, já validado no service: substitui a lista atual. */
+  relatedLinks:     IMaterialLink[]
   /** Campos de arquivo: presentes somente quando o documento foi substituído. */
   storageKey?:      string
   originalFileName?: string
@@ -46,12 +51,13 @@ export async function updateMaterial(
   id: string,
   input: UpdateMaterialInput,
 ): Promise<IUploadedMI> {
-  const { invalidateAiDerived, ...campos } = input
+  const { invalidateAiDerived, relatedLinks, ...campos } = input
 
-  return prisma.materialInstrucional.update({
+  const mi = await prisma.materialInstrucional.update({
     where: { id },
     data: {
       ...campos,
+      relatedLinks: relatedLinks as unknown as Prisma.InputJsonValue,
       ...(invalidateAiDerived
         ? {
             summary:            null,
@@ -63,4 +69,5 @@ export async function updateMaterial(
     },
     select: MI_SELECT,
   })
+  return withRelatedLinks(mi)
 }

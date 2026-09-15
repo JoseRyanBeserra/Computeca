@@ -9,6 +9,7 @@
 // entrar pela porta da organização. Unificar torna a garantia estrutural em vez
 // de depender de alguém lembrar de alterar os dois.
 import type { FastifyRequest } from 'fastify'
+import { logger } from '../../../../../lib/logger'
 
 export interface ParsedMaterialMultipart {
   fileBuffer:       Buffer | null
@@ -17,7 +18,28 @@ export interface ParsedMaterialMultipart {
   title:            string | undefined
   description:      string | undefined
   habilidadesBncc:  string[]
+  /**
+   * Links relacionados como vieram do formulário, ainda NÃO validados — quem
+   * decide se servem é o schema do service. `[]` quando o campo não veio.
+   */
+  relatedLinks:     unknown
   organizationIds:  string[]
+}
+
+/**
+ * O par rótulo/endereço atravessa o multipart como um array JSON numa única
+ * parte. JSON malformado vira lista vazia com advertência: a requisição não cai
+ * por erro de parse. Já um JSON válido que não é lista segue adiante, para o
+ * schema recusar com 422 em vez de ser descartado em silêncio.
+ */
+function parseRelatedLinksField(raw: string): unknown {
+  if (!raw) return []
+  try {
+    return JSON.parse(raw)
+  } catch {
+    logger.warn({ tamanho: raw.length }, 'parseMaterialMultipart: relatedLinks com JSON malformado — tratado como lista vazia')
+    return []
+  }
 }
 
 async function collectBuffer(stream: AsyncIterable<Buffer>): Promise<Buffer> {
@@ -37,6 +59,7 @@ export async function parseMaterialMultipart(
   let title:            string | undefined
   let description:      string | undefined
   const habilidadesBncc: string[] = []
+  let relatedLinks:      unknown  = []
   const organizationIds: string[] = []
 
   for await (const part of request.parts()) {
@@ -61,6 +84,8 @@ export async function parseMaterialMultipart(
         } else if (raw) {
           habilidadesBncc.push(raw)
         }
+      } else if (part.fieldname === 'relatedLinks') {
+        relatedLinks = parseRelatedLinksField(String(part.value).trim())
       } else if (part.fieldname === 'organizationIds[]' || part.fieldname === 'organizationIds') {
         organizationIds.push(String(part.value).trim())
       }
@@ -86,6 +111,7 @@ export async function parseMaterialMultipart(
     title,
     description,
     habilidadesBncc: normalizedHabilidades,
+    relatedLinks,
     organizationIds: [...new Set(organizationIds.filter(Boolean))],
   }
 }

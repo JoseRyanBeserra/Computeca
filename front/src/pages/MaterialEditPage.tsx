@@ -7,6 +7,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Save, ArrowLeft, AlertTriangle, FileUp, X } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { BnccHabilidadePicker } from '../components/BnccHabilidadePicker'
+import { MaterialLinkPicker } from '../components/MaterialLinkPicker'
+import type { MaterialLink } from '../features/materials/api/materialsApi'
 import { useMaterial } from '../features/materials/hooks/useMaterial'
 import { useEditMaterial } from '../features/materials/hooks/useEditMaterial'
 import { getApiErrorMessage } from '../lib/apiError'
@@ -32,6 +34,7 @@ export function MaterialEditPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [habilidadesBncc, setHabilidadesBncc] = useState<string[]>([])
+  const [relatedLinks, setRelatedLinks] = useState<MaterialLink[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [confirmandoTroca, setConfirmandoTroca] = useState(false)
   const [erro, setErro] = useState('')
@@ -46,6 +49,7 @@ export function MaterialEditPage() {
     setTitle(material.title ?? '')
     setDescription(material.description ?? '')
     setHabilidadesBncc(material.habilidadesBncc ?? [])
+    setRelatedLinks(material.relatedLinks ?? [])
   }, [material])
 
   const descricaoAparada = description.trim()
@@ -92,6 +96,7 @@ export function MaterialEditPage() {
         title:           title.trim(),
         description:     descricaoAparada,
         habilidadesBncc: habilidadesBncc.length ? habilidadesBncc : undefined,
+        relatedLinks,
         ...(file ? { file } : {}),
       })
       navigate(`/materials/${id}`)
@@ -199,6 +204,20 @@ export function MaterialEditPage() {
                 selected={habilidadesBncc}
                 onAdd={addHabilidade}
                 onRemove={removeHabilidade}
+                disabled={editMutation.isPending}
+              />
+            </div>
+
+            {/* Links relacionados */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-link-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Links relacionados
+                <span className="ml-1 text-xs text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+              </label>
+              <MaterialLinkPicker
+                idPrefix="edit-link"
+                links={relatedLinks}
+                onChange={setRelatedLinks}
                 disabled={editMutation.isPending}
               />
             </div>

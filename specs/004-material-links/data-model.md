@@ -20,7 +20,7 @@ relatedLinks Json @default("[]")
 | Obrigatório no cadastro | **Não** — links são opcionais |
 | Máximo de itens | **10** por material |
 | Ordem | A de cadastro, preservada na exibição |
-| Alterável depois do cadastro | **Não** — não existe fluxo de edição de metadados |
+| Alterável depois do cadastro | **Sim**, pelo ADMIN na edição de material (feature 005) — ver "Limitação registrada" |
 
 ### Por que não é anulável, diferente de `description`
 
@@ -139,3 +139,8 @@ seria preciso cadastrar o material novamente.
 
 É a mesma limitação registrada na feature 003 para a descrição, e ela pesa um pouco mais aqui:
 endereços quebram com o tempo por causas alheias a quem cadastrou.
+
+> **Atualização na implementação:** a feature 005 (edição de material pelo ADMIN) chegou antes da
+> implementação desta. Os links entraram também em `PUT /mis/:id`, com o mesmo `relatedLinksSchema`,
+> conjunto completo (lista vazia remove todos) e registro no diff de auditoria. A limitação acima
+> deixou de valer para o ADMIN; quem cadastrou continua sem poder corrigir sozinho.

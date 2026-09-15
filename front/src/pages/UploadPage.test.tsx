@@ -185,4 +185,54 @@ describe('UploadPage', () => {
       expect(fd.get('title')).toBe('Material de teste')
     })
   })
+
+  // Feature 004 — links relacionados. Asseverar o CONTEÚDO do FormData, não só
+  // que houve POST (ver front/CLAUDE.md, "Cadastro de material").
+  describe('links relacionados', () => {
+    async function prepararComArquivo(user: ReturnType<typeof userEvent.setup>) {
+      const { container } = renderWithProviders(<UploadPage />, { route: '/upload' })
+      const file = new File(['x'], 'doc.pdf', { type: 'application/pdf' })
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement
+      await user.upload(input, file)
+      preencherObrigatorios()
+    }
+
+    it('o cadastro conclui sem nenhum link — eles são opcionais (FR-002)', async () => {
+      setSession(makeUser({ role: 'PROFESSOR' }))
+      mockApi.post.mockResolvedValue({ data: { id: 'm1', title: 'Material de teste', originalFileName: 'doc.pdf', sizeBytes: 1 } })
+      const user = userEvent.setup()
+      await prepararComArquivo(user)
+
+      await user.click(screen.getByRole('button', { name: /Enviar Material/i }))
+
+      await waitFor(() => expect(mockApi.post).toHaveBeenCalled())
+      const fd = mockApi.post.mock.calls[0][1] as FormData
+      expect(fd.has('relatedLinks')).toBe(false)
+      expect(await screen.findByText(/Material enviado com sucesso/i)).toBeInTheDocument()
+    })
+
+    it('os links informados seguem como array JSON no campo relatedLinks', async () => {
+      setSession(makeUser({ role: 'PROFESSOR' }))
+      mockApi.post.mockResolvedValue({ data: { id: 'm1' } })
+      const user = userEvent.setup()
+      await prepararComArquivo(user)
+
+      for (const [label, url] of [
+        ['Videoaula', 'https://exemplo.org/aula'],
+        ['Planilha',  'https://exemplo.org/planilha'],
+      ]) {
+        fireEvent.change(screen.getByLabelText('Nome do link'), { target: { value: label } })
+        fireEvent.change(screen.getByLabelText('Endereço do link'), { target: { value: url } })
+        await user.click(screen.getByRole('button', { name: /Acrescentar link/i }))
+      }
+      await user.click(screen.getByRole('button', { name: /Enviar Material/i }))
+
+      await waitFor(() => expect(mockApi.post).toHaveBeenCalled())
+      const fd = mockApi.post.mock.calls[0][1] as FormData
+      expect(JSON.parse(fd.get('relatedLinks') as string)).toEqual([
+        { label: 'Videoaula', url: 'https://exemplo.org/aula' },
+        { label: 'Planilha',  url: 'https://exemplo.org/planilha' },
+      ])
+    })
+  })
 })

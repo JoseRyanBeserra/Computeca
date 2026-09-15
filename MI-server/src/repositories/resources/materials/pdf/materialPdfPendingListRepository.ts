@@ -2,6 +2,7 @@
 import { type Prisma } from '@prisma/client'
 import { prisma } from '../../../../database/prisma'
 import type { IPendingMaterial } from '../../../../@types/resources/materials/pdf'
+import { withRelatedLinks } from '../../../../utils/readStoredRelatedLinks'
 
 const PENDING_SELECT = {
   id:               true,
@@ -12,6 +13,7 @@ const PENDING_SELECT = {
   mimeType:         true,
   sizeBytes:        true,
   habilidadesBncc:  true,
+  relatedLinks:     true,
   status:           true,
   vectorStatus:     true,
   uploadedById:     true,
@@ -46,9 +48,10 @@ export async function findPendingMaterials(params: {
     ]
   }
 
-  return prisma.materialInstrucional.findMany({
+  const materials = await prisma.materialInstrucional.findMany({
     where,
     select:  PENDING_SELECT,
     orderBy: { createdAt: 'asc' },
   })
+  return materials.map(withRelatedLinks)
 }

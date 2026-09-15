@@ -1,6 +1,8 @@
 // src/repositories/resources/materials/pdf/materialPdfUploadRepository.ts
+import type { Prisma } from '@prisma/client'
 import { prisma } from '../../../../database/prisma'
-import type { IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import type { IMaterialLink, IUploadedMI } from '../../../../@types/resources/materials/pdf'
+import { withRelatedLinks } from '../../../../utils/readStoredRelatedLinks'
 
 // Campos retornados em todas as queries — nunca expõe campos internos
 const MI_SELECT = {
@@ -12,6 +14,7 @@ const MI_SELECT = {
   mimeType:         true,
   sizeBytes:        true,
   habilidadesBncc:  true,
+  relatedLinks:     true,
   status:           true,
   uploadedById:     true,
   createdAt:        true,
@@ -28,11 +31,13 @@ interface CreateMaterialPdfInput {
   sizeBytes:        number
   /** Opcional — quando ausente o material é criado com lista de habilidades vazia */
   habilidadesBncc?: string[]
+  /** Opcional — já validados no service; quando ausentes o material é criado sem links */
+  relatedLinks?:    IMaterialLink[]
   uploadedById:     string
 }
 
 export async function createMaterialPdf(input: CreateMaterialPdfInput): Promise<IUploadedMI> {
-  return prisma.materialInstrucional.create({
+  const mi = await prisma.materialInstrucional.create({
     data: {
       title:            input.title,
       description:      input.description,
@@ -41,8 +46,10 @@ export async function createMaterialPdf(input: CreateMaterialPdfInput): Promise<
       mimeType:         input.mimeType,
       sizeBytes:        input.sizeBytes,
       habilidadesBncc:  input.habilidadesBncc ?? [],
+      relatedLinks:     (input.relatedLinks ?? []) as unknown as Prisma.InputJsonValue,
       uploadedById:     input.uploadedById,
     },
     select: MI_SELECT,
   })
+  return withRelatedLinks(mi)
 }

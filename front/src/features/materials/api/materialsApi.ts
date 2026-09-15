@@ -7,6 +7,12 @@ export type MIStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
 /** Estado da vetorização do material (fila de processamento no Redis). */
 export type VectorStatus = 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED'
 
+/** Link relacionado ao material: exibido pelo rótulo, aberto pelo endereço. */
+export interface MaterialLink {
+  label: string
+  url: string
+}
+
 export interface UploadedMI {
   id: string
   title: string
@@ -16,6 +22,7 @@ export interface UploadedMI {
   sizeBytes: number
   status: MIStatus
   habilidadesBncc: string[]
+  relatedLinks?: MaterialLink[]
   uploadedById: string
   createdAt: string
   updatedAt: string
@@ -27,6 +34,8 @@ export interface UploadMaterialPayload {
   /** Obrigatória: 50 a 2000 caracteres, validado também no servidor */
   description: string
   habilidadesBncc?: string[]
+  /** Opcionais: até 10, validados também no servidor */
+  relatedLinks?: MaterialLink[]
   organizationId?: string
 }
 
@@ -41,6 +50,11 @@ export async function uploadMaterialRequest(payload: UploadMaterialPayload): Pro
     for (const habilidade of payload.habilidadesBncc) {
       formData.append('habilidadesBncc', habilidade)
     }
+  }
+  if (payload.relatedLinks?.length) {
+    // O par rótulo/endereço atravessa o multipart como um array JSON numa única
+    // parte — campos repetidos pareados por índice desalinhariam em silêncio.
+    formData.append('relatedLinks', JSON.stringify(payload.relatedLinks))
   }
 
   const url = payload.organizationId
@@ -58,6 +72,8 @@ export interface EditMaterialPayload {
   /** Obrigatória: 50 a 2000 caracteres, validado também no servidor */
   description: string
   habilidadesBncc?: string[]
+  /** Conjunto completo: a lista enviada substitui a atual — vazia remove todos. */
+  relatedLinks: MaterialLink[]
   /** Ausente = manter o documento atual. Presente = substituir, e o antigo é apagado. */
   file?: File
 }
@@ -84,6 +100,9 @@ export async function editMaterialRequest(
       formData.append('habilidadesBncc', habilidade)
     }
   }
+  // Segue SEMPRE, mesmo vazia: na edição a lista é o conjunto completo, e `[]`
+  // é o que diz ao servidor que todos os links foram removidos.
+  formData.append('relatedLinks', JSON.stringify(payload.relatedLinks))
   if (payload.file) formData.append('file', payload.file)
 
   const { data } = await api.put<UploadedMI>(`/mis/${materialId}`, formData, {
@@ -121,6 +140,8 @@ export interface PendingMaterial {
   /** `null` quando o material foi cadastrado antes da exigência de descrição */
   description?: string | null
   habilidadesBncc: string[]
+  /** A API devolve sempre, `[]` quando não há links; opcional por tolerância */
+  relatedLinks?: MaterialLink[]
   uploadedById: string
   uploadedBy: { name: string; email: string }
   organizations?: { organization: { id: string; name: string } }[]
