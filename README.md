@@ -2,10 +2,6 @@
 
 > Sistema de curadoria, gestão e disseminação de Materiais Instrucionais para a comunidade acadêmica do Campus IV da UFPB, com enriquecimento de conteúdo via Inteligência Artificial.
 
-# Link Vídeo da Apresentação Final
-
-[Apresentação Equipe 15](https://youtu.be/38z6GGk2aOY)
-
 ---
 
 ## Sumário
